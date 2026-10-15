@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kennedy 3.0 · Formation IA des enseignants</title>
+<meta name="description" content="Kennedy 3.0 : la formation des enseignants du CEM J.F. Kennedy à l'IA et aux applications éducatives.">
+<meta name="theme-color" content="#0F2552">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kennedy 3.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<style>
+:root{
+  --bg:#F2F4F9; --surface:#FFFFFF; --surface2:#F7F8FC; --line:#D9DFEC;
+  --ink:#0F2552; --text:#2B3A55; --muted:#5B6680;
+  --gold:#C9962B; --gold-ink:#8A6210; --gold-soft:#F8EED6;
+  --blue:#1E3F8A; --blue-soft:#E3EAF8;
+  --green:#1F7A5A; --green-soft:#DDF0E7; --red:#B4442F; --red-soft:#F8E1DB;
+  --navy:#0F2552; --on-navy:#F7F4EC;
+  --display:'Montserrat',Arial,sans-serif; --body:'Nunito Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --shadow:0 6px 22px rgba(15,37,82,.08);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1430; --surface:#122149; --surface2:#0F1C40; --line:#26386A;
+  --ink:#F1F4FB; --text:#D3DBEC; --muted:#9AA7C4;
+  --gold:#E0B54A; --gold-ink:#EBC769; --gold-soft:#3A3115;
+  --blue:#8FB0F5; --blue-soft:#1C2F63;
+  --green:#5FC79A; --green-soft:#153D2F; --red:#F29681; --red-soft:#4A2219;
+  --navy:#07102A; --on-navy:#F7F4EC; --shadow:0 6px 22px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1430; --surface:#122149; --surface2:#0F1C40; --line:#26386A;
+  --ink:#F1F4FB; --text:#D3DBEC; --muted:#9AA7C4;
+  --gold:#E0B54A; --gold-ink:#EBC769; --gold-soft:#3A3115;
+  --blue:#8FB0F5; --blue-soft:#1C2F63;
+  --green:#5FC79A; --green-soft:#153D2F; --red:#F29681; --red-soft:#4A2219;
+  --navy:#07102A; --on-navy:#F7F4EC; --shadow:0 6px 22px rgba(0,0,0,.35); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--blue)}
+h1,h2,h3{font-family:var(--display);color:var(--ink);margin:0;line-height:1.15;letter-spacing:-.01em}
+h1{font-size:clamp(26px,6vw,36px);font-weight:800}
+h2{font-size:22px;font-weight:800}
+h3{font-size:17px;font-weight:700}
+p{margin:0}
+.flag{height:5px;background:linear-gradient(90deg,#00853F 0 33.3%,#FDEF42 33.3% 66.6%,#E31B23 66.6%)}
+header.top{position:sticky;top:0;z-index:20;background:var(--navy);color:var(--on-navy);box-shadow:0 2px 14px rgba(0,0,0,.18)}
+.top-in{max-width:880px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;background:none;border:0;color:inherit;cursor:pointer;padding:0;text-align:left}
+.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#E0B54A,#C9962B);display:grid;place-items:center;font-family:var(--display);font-weight:900;color:#0F2552;font-size:16px;flex:none}
+.brand b{font-family:var(--display);font-weight:900;font-size:17px;letter-spacing:.02em;display:block}
+.brand b span{color:#E0B54A}
+.brand small{display:block;font-size:12px;opacity:.8}
+.top-in .sp{flex:1}
+.chip{border:1px solid rgba(255,255,255,.35);background:transparent;color:var(--on-navy);border-radius:999px;padding:7px 14px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
+.chip.gold{background:#E0B54A;border-color:#E0B54A;color:#0F2552}
+main{max-width:880px;margin:0 auto;padding:20px 16px 110px;display:flex;flex-direction:column;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
+.eyebrow{font-family:var(--display);font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink)}
+.muted{color:var(--muted)} .small{font-size:14px}
+.row{display:flex;align-items:center;gap:10px}
+.wrap{flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:12px 18px;font-weight:800;cursor:pointer;background:var(--navy);color:var(--on-navy);text-decoration:none;font-size:15px;min-height:46px}
+.btn.gold{background:var(--gold);color:#1B1405}
+.btn.green{background:var(--green);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.sm{padding:8px 12px;min-height:38px;font-size:14px;border-radius:12px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.55;cursor:default}
+.hero{background:radial-gradient(120% 140% at 100% 0%,#1E3F8A 0%,#0F2552 55%,#0A1A3D 100%);color:var(--on-navy);border-radius:24px;padding:24px;position:relative;overflow:hidden}
+.hero h1{color:#fff}
+.hero .eyebrow{color:#E0B54A}
+.hero p{color:#D5DDF0}
+.hero:after{content:"";position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border-radius:50%;border:28px solid rgba(224,181,74,.12)}
+.ring{--p:0;width:92px;height:92px;border-radius:50%;background:conic-gradient(#E0B54A calc(var(--p)*1%),rgba(255,255,255,.14) 0);display:grid;place-items:center;flex:none}
+.ring>div{width:72px;height:72px;border-radius:50%;background:#0F2552;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:20px;color:#fff}
+.tile{display:flex;flex-direction:column;gap:8px;text-align:left;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);transition:transform .12s ease,border-color .12s ease;color:var(--text)}
+.tile:hover{transform:translateY(-2px);border-color:var(--gold)}
+.tile .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue)}
+.tile .ic.g{background:var(--green-soft);color:var(--green)} .tile .ic.o{background:var(--gold-soft);color:var(--gold-ink)} .tile .ic.r{background:var(--red-soft);color:var(--red)}
+.tile h3{font-size:16px}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--green);border-radius:99px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px;font-size:13px;font-weight:800;background:var(--blue-soft);color:var(--blue)}
+.pill.ok{background:var(--green-soft);color:var(--green)} .pill.gold{background:var(--gold-soft);color:var(--gold-ink)} .pill.ko{background:var(--red-soft);color:var(--red)}
+.tl{display:flex;flex-direction:column;gap:0}
+.tl-i{display:grid;grid-template-columns:70px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);cursor:default}
+.tl-i:last-child{border-bottom:0}
+.tl-i b.h{font-family:var(--display);font-weight:800;color:var(--ink)}
+.tl-i.pause{background:var(--gold-soft);border-radius:12px;padding:10px;border:0;margin:4px 0}
+.tl-i.now{background:var(--green-soft);border-radius:12px;padding:10px;border:0;outline:2px solid var(--green)}
+.tl-i.go{cursor:pointer}
+.step{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface2)}
+.step.done{background:var(--green-soft);border-color:transparent}
+.ck{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;font-weight:900;color:var(--muted);flex:none}
+.step.done .ck{background:var(--green);border-color:var(--green);color:#fff}
+.prompt{position:relative;background:var(--navy);color:#EEF2FB;border-radius:16px;padding:16px;white-space:pre-wrap;font-size:14.5px;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:420px;overflow:auto}
+.form{display:flex;flex-direction:column;gap:6px;font-weight:700;color:var(--ink);font-size:14px}
+.form input,.form select,.form textarea{font-weight:400;font-size:16px;padding:11px 12px;border-radius:12px;border:2px solid var(--line);background:var(--surface2);color:var(--text);width:100%}
+.form textarea{min-height:96px;resize:vertical}
+.form input:focus,.form select:focus,.form textarea:focus{outline:none;border-color:var(--gold)}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.checks label{display:flex;align-items:center;gap:6px;border:2px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:14px;background:var(--surface2)}
+.checks input{accent-color:var(--gold)}
+.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:2px}
+.tabs button{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:800;cursor:pointer;white-space:nowrap;color:var(--ink)}
+.tabs button.on{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
+.err{color:var(--red);font-weight:700}
+.note{border-left:4px solid var(--gold);background:var(--gold-soft);border-radius:12px;padding:12px 14px;color:var(--text)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.3);max-width:90vw}
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+nav.bottom>div{max-width:880px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+nav.bottom button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer;padding:6px 2px;border-radius:12px}
+nav.bottom button.on{color:var(--ink);background:var(--blue-soft)}
+.offline{background:var(--red-soft);color:var(--red);text-align:center;font-weight:700;font-size:13px;padding:4px}
+.shot{width:100%;max-width:220px;border-radius:22px;border:8px solid #0F2552;box-shadow:var(--shadow);display:block}
+.meth{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start}
+.meth .n{width:44px;height:44px;border-radius:50%;background:var(--navy);color:#E0B54A;display:grid;place-items:center;font-family:var(--display);font-weight:900}
+.chart-row{display:grid;grid-template-columns:150px 1fr 48px;gap:10px;align-items:center;font-size:14px}
+.chart-row .bar{height:14px}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th,table.t td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font-family:var(--display);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.qr{background:#fff;padding:12px;border-radius:16px;display:inline-block}
+@media (max-width:560px){.chart-row{grid-template-columns:110px 1fr 42px}.hide-sm{display:none}}
+@media print{header.top,nav.bottom{display:none}}
+</style>
+<body>
+<div class="flag"></div>
+<header class="top"><div class="top-in">
+  <button class="brand" data-act="go" data-v="home"><span class="logo">K3</span><span><b>KENNEDY <span>3.0</span></b><small>Formation IA des enseignants</small></span></button>
+  <span class="sp"></span>
+  <span id="topright"></span>
+</div></header>
+<div id="offline" class="offline" hidden>Hors connexion : vos actions seront envoyées au retour du réseau.</div>
+<main id="app"></main>
+<nav class="bottom" id="nav" hidden><div></div></nav>
+<script src="data.js"></script>
+<script>
+/* ======================================================================
+   KENNEDY 3.0 · CEM J.F. Kennedy · ProfDeMaths 2.0
+   Adresse du serveur Google Apps Script (Déployer › Application Web › URL …/exec)
+   ====================================================================== */
+const API_URL = "COLLER_ICI_L_URL_DU_SCRIPT";
+const apiOn = () => /^https:\/\/script\.google\.com\//.test(API_URL);
+
+/* ---------- état local ---------- */
+const KEY = 'k3_db';
+let DB = {};
+try { DB = JSON.parse(localStorage.getItem(KEY) || '{}') } catch (e) { DB = {} }
+DB.av = DB.av || {}; DB.liv = DB.liv || {}; DB.vars = DB.vars || {}; DB.queue = DB.queue || [];
+function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)) } catch (e) {} }
+const S = { v: 'home', p: null, tache: null, grp: 'annee', auth: 'signup', busy: false, err: '', F: null, cel: null, celErr: '' };
+
+/* ---------- outils ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600) }
+function copy(txt) {
+  const ok = () => toast('Copié ! Collez-le dans Claude.');
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(ok, fb); else fb();
+  function fb() { const a = document.createElement('textarea'); a.value = txt; a.style.position = 'fixed'; a.style.opacity = '0'; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); ok() } catch (e) { toast('Sélectionnez le texte puis copiez-le.') } a.remove() }
+}
+const I = {
+  home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  day: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  spark: '<path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/>',
+  route: '<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M6 17V9a4 4 0 0 1 4-4h6M18 7v8a4 4 0 0 1-4 4H8"/>',
+  team: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 20c0-2.5 1.5-4.5 4-4.5s3 1 3 1"/>',
+  book: '<path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/>',
+  check: '<path d="M4 12l5 5L20 6"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  bag: '<path d="M5 8h14l-1 12H6zM9 8a3 3 0 0 1 6 0"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+  qr: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/>',
+  layers: '<path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'
+};
+const ic = (n, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+
+/* ---------- réseau ---------- */
+async function api(action, data) {
+  if (!apiOn()) return { ok: false, local: true, erreur: "Le serveur n'est pas encore branché (API_URL)." };
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 25000);
+  try {
+    const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action }, data || {})), signal: ctl.signal });
+    clearTimeout(t); return await r.json();
+  } catch (e) { clearTimeout(t); return { ok: false, reseau: true, erreur: 'Pas de réponse du serveur. Vérifiez la connexion.' } }
+}
+function auth() { return { pseudo: DB.profil && DB.profil.pseudo, jeton: DB.jeton } }
+function enqueue(job) { DB.queue.push(job); if (DB.queue.length > 300) DB.queue.splice(0, DB.queue.length - 300); save(); flush() }
+let flushing = false;
+async function flush() {
+  if (flushing || !DB.queue.length || !apiOn() || !DB.jeton || navigator.onLine === false) return;
+  flushing = true;
+  const sv = DB.queue.filter(j => j.a === 'sauver'), li = DB.queue.filter(j => j.a === 'livrable');
+  let ok = true;
+  if (sv.length) { const r = await api('sauver', Object.assign(auth(), { items: sv.map(j => ({ cle: j.cle, valeur: j.valeur })) })); if (!r.ok) ok = false; if (r.session) return sessionLost() }
+  for (const j of li) { const r = await api('livrable', Object.assign(auth(), { type: j.type, valeur: j.valeur })); if (!r.ok) { ok = false; if (r.session) return sessionLost(); break } }
+  if (ok) { DB.queue = []; save() }
+  flushing = false;
+}
+function sessionLost() { flushing = false; toast('Session expirée : reconnectez-vous.'); logout(true) }
+window.addEventListener('online', () => { $('#offline').hidden = true; flush() });
+window.addEventListener('offline', () => { $('#offline').hidden = false });
+
+/* ---------- progression ---------- */
+function setAv(cle, val) { if (val) DB.av[cle] = val; else delete DB.av[cle]; save(); enqueue({ a: 'sauver', cle, valeur: val || '' }) }
+const isDone = k => !!DB.av[k] && DB.av[k] !== '';
+function actPct(a) { const n = a.etapes.length, d = a.etapes.filter((e, i) => isDone(`${a.id}:${i}`)).length; return { d, n, p: Math.round(d / n * 100) } }
+function parcoursPct() { const all = PARCOURS.flatMap(p => p.missions); const d = all.filter(m => isDone('mission:' + m.id)).length; return { d, n: all.length, p: Math.round(d / all.length * 100) } }
+function globalPct() {
+  const steps = ACTIVITES.flatMap(a => a.etapes.map((e, i) => `${a.id}:${i}`)), miss = PARCOURS.flatMap(p => p.missions.map(m => 'mission:' + m.id));
+  const all = steps.concat(miss); return Math.round(all.filter(isDone).length / all.length * 100);
+}
+
+/* ---------- navigation ---------- */
+function go(v, p) { S.v = v; S.p = p || null; S.err = ''; render(); window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' }) }
+function route(dest) { if (!dest) return; if (dest.startsWith('act:')) return go('act', dest.slice(4)); go(dest) }
+
+/* ======================= VUES ======================= */
+function vAuth() {
+  const su = S.auth === 'signup';
+  return `<section class="hero"><p class="eyebrow">CEM J.F. Kennedy · Formation 2026-2027</p>
+    <h1 style="margin:8px 0 10px">Kennedy 3.0</h1>
+    <p>L'application de formation des enseignants : l'IA et les applications éducatives au service des apprentissages. Un compte par prof, toute la formation au même endroit, en présentiel et à distance.</p></section>
+  ${apiOn() ? '' : `<p class="note small"><b>Mode démonstration :</b> le serveur n'est pas encore branché. Les données restent sur cet appareil.</p>`}
+  <section class="card" style="display:flex;flex-direction:column;gap:14px">
+    <div class="tabs"><button class="${su ? 'on' : ''}" data-act="auth" data-v="signup">Créer mon compte</button><button class="${su ? '' : 'on'}" data-act="auth" data-v="login">Me connecter</button></div>
+    ${su ? `
+    <div class="grid2" style="gap:12px">
+      <label class="form">Prénom<input id="f-prenom" autocomplete="given-name"></label>
+      <label class="form">Nom<input id="f-nom" autocomplete="family-name"></label>
+    </div>
+    <label class="form">Ma cellule<select id="f-cellule"><option value="">Choisir…</option>${CELLULES.map(c => `<option>${esc(c)}</option>`).join('')}</select></label>
+    <label class="form">Ma ou mes disciplines<input id="f-disc" placeholder="Mathématiques, Physique-chimie"></label>
+    <div class="form">Mes niveaux<div class="checks">${NIVEAUX.map(n => `<label><input type="checkbox" name="niv" value="${n}">${n}</label>`).join('')}</div></div>
+    <div class="grid2" style="gap:12px">
+      <label class="form">Pseudo (pour me connecter)<input id="f-pseudo" autocapitalize="none" placeholder="ex. awa.diop"></label>
+      <label class="form">Code secret (4 chiffres)<input id="f-pin" inputmode="numeric" maxlength="4" type="password"></label>
+    </div>` : `
+    <label class="form">Pseudo<input id="f-pseudo" autocapitalize="none"></label>
+    <label class="form">Code secret<input id="f-pin" inputmode="numeric" maxlength="4" type="password"></label>`}
+    ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
+    <button class="btn gold wide" data-act="${su ? 'signup' : 'login'}" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Un instant…' : su ? 'Créer mon compte' : 'Me connecter'}</button>
+    <p class="small muted">Votre pseudo et votre code permettent de retrouver votre avancement sur n'importe quel appareil.</p>
+  </section>
+  <button class="btn ghost" data-act="go" data-v="formateur">Espace formateur</button>`;
+}
+
+function vHome() {
+  const P = DB.profil, g = globalPct(), now = nowItem();
+  const tiles = [
+    { v: 'jour', i: 'day', c: '', t: 'La journée du 20 octobre', d: 'Programme, horaires, ce qui se passe maintenant' },
+    { v: 'evaluations', i: 'qr', c: 'o', t: 'Auto-évaluations', d: "Entrée et sortie : mesurer vos progrès" },
+    { v: 'kit', i: 'bag', c: '', t: 'Mon kit', d: `${KIT.filter(k => isDone('kit:' + k.k)).length} / ${KIT.length} éléments prêts` },
+    { v: 'atelier', i: 'spark', c: 'o', t: "L'atelier Claude", d: 'La bonne demande et les consignes pour chaque tâche' },
+    { v: 'methode', i: 'layers', c: 'g', t: 'La méthode ProfDeMaths', d: 'Le traitement des connaissances, étape par étape' },
+    { v: 'cellule', i: 'team', c: '', t: 'Ma cellule', d: 'Livrables, liens, cahier des charges' },
+    { v: 'parcours', i: 'route', c: 'g', t: 'Mon parcours', d: `${parcoursPct().d} / ${parcoursPct().n} missions · formation continue` },
+    { v: 'regles', i: 'shield', c: 'r', t: 'Usage responsable', d: 'Quatre règles d\'or, PLANETE 3.0' }
+  ];
+  return `<section class="hero"><div class="row" style="gap:18px;align-items:center">
+      <div style="flex:1;min-width:0"><p class="eyebrow">${esc(P.cellule || '')}</p>
+      <h1 style="margin:6px 0 8px">Bonjour ${esc(P.prenom)} !</h1>
+      <p>${now ? `<b style="color:#fff">En ce moment :</b> ${esc(now.t)}` : 'Votre formation à l\'IA, du jour J à la formation n°2 de janvier 2027.'}</p></div>
+      <div class="ring" style="--p:${g}"><div>${g}%</div></div></div>
+      ${now && now.go ? `<button class="btn gold" style="margin-top:16px" data-act="route" data-v="${esc(now.go)}">Y aller</button>` : ''}
+    </section>
+  <section><p class="eyebrow" style="margin-bottom:10px">Les trois activités</p>
+    <div class="grid2">${ACTIVITES.map(a => { const x = actPct(a); return `<button class="tile" data-act="route" data-v="act:${a.id}">
+      <div class="row"><span class="ic ${a.couleur === 'green' ? 'g' : a.couleur === 'gold' ? 'o' : ''}" style="font-family:var(--display);font-weight:900">${a.n}</span><span class="pill ${x.p === 100 ? 'ok' : ''}">${x.d}/${x.n}</span></div>
+      <h3>${esc(a.titre)}</h3><p class="small muted">${esc(a.horaire)} · ${esc(a.modalite)}</p><div class="bar"><i style="width:${x.p}%"></i></div></button>` }).join('')}</div></section>
+  <section><p class="eyebrow" style="margin-bottom:10px">Tout Kennedy 3.0</p>
+    <div class="grid2">${tiles.map(t => `<button class="tile" data-act="go" data-v="${t.v}"><span class="ic ${t.c}">${ic(t.i)}</span><h3>${esc(t.t)}</h3><p class="small muted">${esc(t.d)}</p></button>`).join('')}</div></section>
+  <section class="card"><p class="eyebrow">Les quatre objectifs de l'année</p>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">${OBJECTIFS.map(o => `<div class="meth"><span class="n">${o.n}</span><div><h3>${esc(o.t)}</h3><p class="small muted">${esc(o.d)}</p></div></div>`).join('')}</div></section>`;
+}
+
+function nowItem() {
+  const d = new Date(), iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  if (iso !== JOUR.date) return null;
+  const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  return PROGRAMME.find(x => hm >= x.h && hm < x.f) || null;
+}
+
+function vJour() {
+  const now = nowItem();
+  return `<div><p class="eyebrow">${esc(JOUR.label)} · 09h00 – 16h00</p><h1 style="margin-top:6px">La journée de formation</h1><p class="muted" style="margin-top:6px">${esc(JOUR.lieu)}</p></div>
+  <section class="card"><div class="tl">${PROGRAMME.map(x => `<div class="tl-i ${x.pause ? 'pause' : ''} ${now === x ? 'now' : ''} ${x.go ? 'go' : ''}" ${x.go ? `data-act="route" data-v="${esc(x.go)}"` : ''}>
+    <b class="h">${x.h.replace(':', 'h')}</b><div><b style="color:var(--ink)">${esc(x.t)}</b>${now === x ? ' <span class="pill ok">En cours</span>' : ''}${x.d ? `<p class="small muted">${esc(x.d)}</p>` : ''}</div></div>`).join('')}</div></section>
+  <section class="card"><p class="eyebrow">Les formateurs</p><p style="margin-top:8px">M. Racine Thiam (ProfDeMaths 2.0) · Mme Diop Aminata Mbaye</p></section>`;
+}
+
+function vObjectifs() {
+  return `<div><p class="eyebrow">Cap 2026-2027</p><h1 style="margin-top:6px">Quatre objectifs pour l'année</h1></div>
+  ${OBJECTIFS.map(o => `<section class="card meth"><span class="n">${o.n}</span><div><h3>${esc(o.t)}</h3><p class="muted" style="margin-top:4px">${esc(o.d)}</p></div></section>`).join('')}
+  <button class="btn gold" data-act="go" data-v="kit">Préparer mon kit</button>`;
+}
+
+function vKit() {
+  const n = KIT.filter(k => isDone('kit:' + k.k)).length;
+  return `<div><p class="eyebrow">À apporter, en PDF si possible</p><h1 style="margin-top:6px">Mon kit</h1>
+  <p class="muted" style="margin-top:6px">Ces documents deviennent les sources de votre projet Claude : c'est la condition de l'automatisation de votre année.</p></div>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><div class="row"><b style="color:var(--ink)">${n} / ${KIT.length} prêts</b><span class="sp" style="flex:1"></span></div><div class="bar"><i style="width:${Math.round(n / KIT.length * 100)}%"></i></div>
+  ${KIT.map(k => { const d = isDone('kit:' + k.k); return `<div class="step ${d ? 'done' : ''}"><button class="ck" data-act="kit" data-k="${k.k}" aria-label="Cocher">${d ? '✓' : ''}</button><div><b style="color:var(--ink)">${esc(k.t)}</b><p class="small muted">${esc(k.d)}</p></div></div>` }).join('')}</section>`;
+}
+
+function vEvaluations() {
+  return `<div><p class="eyebrow">Mesurer vos progrès</p><h1 style="margin-top:6px">Auto-évaluations</h1>
+  <p class="muted" style="margin-top:6px">Même grille à l'entrée et à la sortie. Votre code : <b>2 premières lettres du prénom + jour de naissance</b> (ex. AW14), le même les deux fois. C'est anonyme.</p></div>
+  <div class="grid2">
+  ${[['entree', "Auto-évaluation d'entrée", "À l'accueil, avant de commencer", 'm-entree'], ['sortie', 'Évaluation de sortie', 'En fin de journée, puis votre avis', 'm-sortie']].map(([k, t, d, m]) => `
+    <section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+      <h2>${t}</h2><p class="small muted">${d}</p>
+      <div class="qr" id="qr-${k}"></div>
+      <a class="btn gold wide" href="${FORMS[k]}" target="_blank" rel="noopener" data-act="mission-auto" data-v="${m}">Ouvrir le formulaire</a>
+      <label class="small row" style="gap:8px"><input type="checkbox" data-act="mission" data-v="${m}" ${isDone('mission:' + m) ? 'checked' : ''}> C'est fait</label>
+    </section>`).join('')}</div>`;
+}
+
+function vAct(id) {
+  const a = ACTIVITES.find(x => x.id === id); if (!a) return vHome();
+  const x = actPct(a);
+  return `<section class="hero"><p class="eyebrow">Activité ${a.n} · ${esc(a.horaire)} · ${esc(a.modalite)}</p><h1 style="margin:6px 0 8px">${esc(a.titre)}</h1><p>${esc(a.objectif)}</p>
+    <div class="row wrap" style="margin-top:14px;gap:8px"><span class="pill gold">${esc(a.duree)}</span><span class="pill gold">À la fin : ${esc(a.livrable)}</span></div></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px">
+    <div class="row"><h2 style="flex:1">Pas à pas</h2><span class="pill ${x.p === 100 ? 'ok' : ''}">${x.d} / ${x.n}</span></div>
+    <div class="bar"><i style="width:${x.p}%"></i></div>
+    ${a.etapes.map((e, i) => { const d = isDone(`${a.id}:${i}`); return `<div class="step ${d ? 'done' : ''}">
+      <button class="ck" data-act="step" data-a="${a.id}" data-i="${i}" aria-label="Étape faite">${d ? '✓' : i + 1}</button>
+      <div style="display:flex;flex-direction:column;gap:6px"><div class="row wrap" style="gap:8px"><b style="color:var(--ink)">${esc(e.t)}</b><span class="pill">${e.m} min</span></div>
+      <p class="small">${esc(e.d)}</p>
+      ${e.tache ? `<button class="btn sm ghost" style="align-self:flex-start" data-act="tache" data-v="${e.tache}">${ic('spark', 16)} La demande et les consignes</button>` : ''}</div></div>` }).join('')}
+  </section>
+  ${id === 'a2' || id === 'a3' ? `<button class="btn gold" data-act="go" data-v="cellule">Déposer mes livrables dans « Ma cellule »</button>` : ''}
+  ${x.p === 100 ? `<p class="note"><b>Bravo !</b> Activité terminée.</p>` : ''}`;
+}
+
+function vAtelier() {
+  return `<div><p class="eyebrow">Pour tout ce que vous faites avec Claude</p><h1 style="margin-top:6px">L'atelier Claude</h1>
+  <p class="muted" style="margin-top:6px">Choisissez une tâche : l'application prépare la demande à copier dans votre projet Claude, avec les consignes et ce qu'il faut vérifier.</p></div>
+  <div class="tabs">${GROUPES.map(g => `<button class="${S.grp === g.id ? 'on' : ''}" data-act="grp" data-v="${g.id}">${esc(g.t)}</button>`).join('')}</div>
+  <p class="small muted">${esc((GROUPES.find(g => g.id === S.grp) || {}).d || '')}</p>
+  <div class="grid2">${TACHES.filter(t => t.g === S.grp).map(t => `<button class="tile" data-act="tache" data-v="${t.id}">
+    <span class="ic o">${ic('spark')}</span><h3>${esc(t.t)}</h3><p class="small muted">${esc(t.d)}</p>${isDone('tache:' + t.id) ? '<span class="pill ok">Déjà fait</span>' : ''}</button>`).join('')}</div>`;
+}
+
+function defVal(k) {
+  const P = DB.profil || {};
+  if (DB.vars[k] !== undefined) return DB.vars[k];
+  const c = CH[k] || {};
+  if (k === 'discipline') return (P.disciplines || '').split(',')[0].trim();
+  if (k === 'niveau') return (P.niveaux || '').split(',')[0] || '4e';
+  if (k === 'classes') return P.niveaux || '';
+  if (k === 'date') { const d = new Date(); return d.toISOString().slice(0, 10) }
+  return c.def !== undefined ? c.def : '';
+}
+function vTache(id) {
+  const t = TACHES.find(x => x.id === id); if (!t) return vAtelier();
+  const v = {}; t.champs.forEach(k => v[k] = defVal(k));
+  const filled = t.champs.every(k => (CH[k] || {}).opt || String(v[k]).trim() !== '');
+  const prompts = t.prompts(Object.assign({}, v, Object.fromEntries(t.champs.map(k => [k, String(v[k]).trim() || '[' + ((CH[k] || {}).label || k).toLowerCase() + ']']))));
+  return `<button class="btn ghost sm" style="align-self:flex-start" data-act="go" data-v="atelier">← L'atelier Claude</button>
+  <div><p class="eyebrow">${esc((GROUPES.find(g => g.id === t.g) || {}).t || '')}</p><h1 style="margin-top:6px">${esc(t.t)}</h1><p class="muted" style="margin-top:6px">${esc(t.d)}</p></div>
+  <p class="note small"><b>Il faut :</b> ${esc(t.besoin)}</p>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px"><h2>1 · Je précise</h2>
+    <div class="grid2" style="gap:12px">${t.champs.map(k => champ(k, v[k])).join('')}</div></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:14px"><h2>2 · Je copie la demande</h2>
+    ${filled ? '' : '<p class="small muted">Complétez les champs : la demande se met à jour toute seule.</p>'}
+    ${prompts.map((p, i) => `<div style="display:flex;flex-direction:column;gap:8px"><b style="color:var(--ink)">${esc(p.titre)}</b>
+      <div class="prompt" id="pr-${i}">${esc(p.texte)}</div>
+      <div class="row wrap"><button class="btn gold" data-act="copy" data-i="${i}">Copier la demande</button><a class="btn ghost" href="https://claude.ai/projects" target="_blank" rel="noopener">Ouvrir mes projets Claude</a></div></div>`).join('')}
+  </section>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>3 · Je suis les consignes</h2>
+    <ol style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px">${t.etapes.map(e => `<li>${esc(e)}</li>`).join('')}</ol></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>4 · Je vérifie</h2>
+    ${t.verifier.map(e => `<p class="row" style="align-items:flex-start"><span style="color:var(--green)">${ic('check', 18)}</span><span>${esc(e)}</span></p>`).join('')}
+    <button class="btn ${isDone('tache:' + t.id) ? 'ghost' : 'green'}" data-act="tache-done" data-v="${t.id}">${isDone('tache:' + t.id) ? 'Marqué comme fait · annuler' : "C'est fait"}</button></section>`;
+}
+function champ(k, val) {
+  const c = CH[k] || { label: k };
+  if (c.type === 'niveau') return `<label class="form">${esc(c.label)}<select data-var="${k}">${NIVEAUX.map(n => `<option ${n === val ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
+  if (c.type === 'area') return `<label class="form" style="grid-column:1/-1">${esc(c.label)}<textarea data-var="${k}" placeholder="${esc(c.ph || '')}">${esc(val)}</textarea></label>`;
+  return `<label class="form">${esc(c.label)}${c.opt ? ' <span class="muted small">(facultatif)</span>' : ''}<input data-var="${k}" type="${c.type || 'text'}" value="${esc(val)}" placeholder="${esc(c.ph || '')}"></label>`;
+}
+
+function vMethode() {
+  return `<section class="hero"><p class="eyebrow">Le modèle de référence</p><h1 style="margin:6px 0 8px">La méthode ProfDeMaths</h1>
+    <p>Comment ProfDeMaths 2.0 traite les connaissances, du programme jusqu'au suivi de chaque élève. Chaque cellule applique exactement la même méthode à sa discipline.</p></section>
+  ${METHODE.map((m, i) => `<section class="card" style="display:flex;flex-direction:column;gap:12px"><div class="meth"><span class="n">${i + 1}</span><div><h3>${esc(m.t)}</h3><p class="muted" style="margin-top:4px">${esc(m.d)}</p></div></div>
+    ${m.img ? `<img class="shot" src="img/${m.img}.jpg" alt="${esc(m.t)} dans ProfDeMaths 2.0" loading="lazy">` : ''}
+    ${m.tache ? `<button class="btn sm ghost" style="align-self:flex-start" data-act="tache" data-v="${m.tache}">${ic('spark', 16)} Le faire avec Claude</button>` : ''}</section>`).join('')}
+  <button class="btn gold" data-act="tache" data-v="chapitre">Construire un chapitre complet</button>`;
+}
+
+function vParcours() {
+  const x = parcoursPct();
+  return `<div><p class="eyebrow">Formation continue · présentiel et à distance</p><h1 style="margin-top:6px">Mon parcours</h1>
+  <p class="muted" style="margin-top:6px">Les missions de l'année, du jour J à la formation n°2. Vos formateurs suivent votre avancement.</p></div>
+  <section class="card"><div class="row"><b style="color:var(--ink);flex:1">${x.d} / ${x.n} missions</b><span class="pill ${x.p === 100 ? 'ok' : 'gold'}">${x.p}%</span></div><div class="bar" style="margin-top:10px"><i style="width:${x.p}%"></i></div></section>
+  ${PARCOURS.map(p => `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>${esc(p.t)}</h2>
+    ${p.missions.map(m => { const d = isDone('mission:' + m.id); return `<div class="step ${d ? 'done' : ''}"><button class="ck" data-act="mission-tog" data-v="${m.id}" aria-label="Mission faite">${d ? '✓' : ''}</button>
+    <div style="display:flex;flex-direction:column;gap:6px"><b style="color:var(--ink)">${esc(m.t)}</b>
+    ${m.tache ? `<button class="btn sm ghost" style="align-self:flex-start" data-act="tache" data-v="${m.tache}">${ic('spark', 16)} La demande et les consignes</button>` : m.go ? `<button class="btn sm ghost" style="align-self:flex-start" data-act="route" data-v="${esc(m.go)}">Y aller</button>` : ''}</div></div>` }).join('')}</section>`).join('')}`;
+}
+
+function vCellule() {
+  const P = DB.profil, cdc = (() => { try { return JSON.parse(DB.liv.cdc || '{}') } catch (e) { return {} } })();
+  const C = S.cel;
+  return `<div><p class="eyebrow">${esc(P.cellule)}</p><h1 style="margin-top:6px">Ma cellule</h1>
+  <p class="muted" style="margin-top:6px">Vos livrables, ceux de vos collègues et le cahier des charges de l'application de la cellule.</p></div>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Mes livrables</h2>
+    ${LIVRABLES.map(l => `<label class="form">${esc(l.t)}<input data-liv="${l.k}" type="${l.type === 'url' ? 'url' : 'text'}" value="${esc(DB.liv[l.k] || '')}" placeholder="${esc(l.ph)}"></label>`).join('')}
+    <label class="small row" style="gap:8px"><input type="checkbox" data-act="referent" ${P.referent ? 'checked' : ''}> Je suis le référent de ma cellule</label>
+    <button class="btn gold" data-act="save-liv">Enregistrer mes livrables</button></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Cahier des charges de l'application</h2>
+    <p class="small muted">Un membre le remplit pendant l'activité 3 ; tout le monde le voit ci-dessous.</p>
+    <label class="form">Pour qui ?<textarea data-cdc="qui" placeholder="Élèves de 6e à 3e, profs de la cellule, administration…">${esc(cdc.qui || '')}</textarea></label>
+    <label class="form">Pour quoi faire ?<textarea data-cdc="quoi" placeholder="Problème à résoudre, objectif pédagogique">${esc(cdc.quoi || '')}</textarea></label>
+    <div class="form">Modules (méthode ProfDeMaths)<div class="checks">${MODULES_APP.map(m => `<label><input type="checkbox" data-cdcm value="${esc(m)}" ${(cdc.modules || []).includes(m) ? 'checked' : ''}>${esc(m)}</label>`).join('')}</div></div>
+    <label class="form">Les 3 modules prioritaires de la version 1<textarea data-cdc="prio">${esc(cdc.prio || '')}</textarea></label>
+    <label class="form">Données à préparer<textarea data-cdc="donnees" placeholder="Listes de classes, progressions, banques de questions…">${esc(cdc.donnees || '')}</textarea></label>
+    <label class="form">Échéancier et répartition des tâches<textarea data-cdc="echeancier" placeholder="Qui fait quoi, pour quand">${esc(cdc.echeancier || '')}</textarea></label>
+    <div class="row wrap"><button class="btn gold" data-act="save-cdc">Enregistrer le cahier des charges</button><button class="btn ghost" data-act="cdc-plan">En faire le plan avec Claude</button></div></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><div class="row"><h2 style="flex:1">Les collègues de la cellule</h2><button class="btn sm ghost" data-act="cel-load">Actualiser</button></div>
+    ${S.celErr ? `<p class="err">${esc(S.celErr)}</p>` : ''}
+    ${!C ? `<p class="small muted">${apiOn() ? 'Chargement…' : 'Disponible quand le serveur est branché.'}</p>` : celluleTable(C)}</section>`;
+}
+function celluleTable(C) {
+  if (!C.profs.length) return '<p class="small muted">Aucun collègue inscrit pour le moment.</p>';
+  const L = {}; C.livrables.forEach(x => { (L[x.pseudo] = L[x.pseudo] || {})[x.type] = x.valeur });
+  const lien = u => /^https?:\/\//.test(u || '') ? `<a href="${esc(u)}" target="_blank" rel="noopener">Ouvrir</a>` : (u ? esc(u) : '<span class="muted">—</span>');
+  return `<div style="overflow:auto"><table class="t"><tr><th>Collègue</th><th>Projet</th><th>Test</th><th>Mini-appli</th></tr>
+    ${C.profs.map(p => { const l = L[p.pseudo] || {}; return `<tr><td><b>${esc(p.prenom)} ${esc(p.nom)}</b>${p.referent ? ' <span class="pill gold">Référent</span>' : ''}</td><td>${esc(l.projet || '—')}</td><td>${lien(l.test)}</td><td>${lien(l.miniapp)}</td></tr>` }).join('')}</table></div>
+    ${(() => { const c = C.livrables.filter(x => x.type === 'cdc'); if (!c.length) return ''; let o = {}; try { o = JSON.parse(c[c.length - 1].valeur) } catch (e) {} return `<div class="note small"><b>Cahier des charges partagé :</b> ${esc((o.modules || []).join(', ') || '—')}<br>Priorités : ${esc(o.prio || '—')}</div>` })()}`;
+}
+
+function vRegles() {
+  return `<div><p class="eyebrow">Usage responsable</p><h1 style="margin-top:6px">Quatre règles d'or</h1></div>
+  <div class="grid2">${REGLES.map(r => `<section class="card"><h3>${esc(r.t)}</h3><p class="muted" style="margin-top:6px">${esc(r.d)}</p></section>`).join('')}</div>
+  <section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>PLANETE 3.0 : saisie assistée</h2>
+    <p>Je me connecte moi-même, sans jamais donner mon mot de passe. Je relis chaque entrée. C'est moi qui valide, et je reste responsable de ce qui est enregistré.</p>
+    <p class="small muted">Nécessite l'extension Claude pour Chrome, réservée aux offres payantes.</p></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>Quel compte Claude ?</h2>
+    <p><b>Gratuit :</b> projets (jusqu'à 5), connecteur Google Agenda ; usage limité, pas d'extension Chrome.</p>
+    <p><b>Pro :</b> au moins 5 fois plus d'usage, extension Chrome pour PLANETE 3.0.</p>
+    <p><b>Team :</b> géré et payé par l'établissement, 2 sièges minimum.</p>
+    <p class="small muted">Un compte reste personnel : on ne le partage pas.</p></section>`;
+}
+
+function vCompte() {
+  const P = DB.profil;
+  return `<div><p class="eyebrow">Mon compte</p><h1 style="margin-top:6px">${esc(P.prenom)} ${esc(P.nom)}</h1><p class="muted">@${esc(P.pseudo)} · ${esc(P.cellule)}</p></div>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><p><b>Disciplines :</b> ${esc(P.disciplines || '—')}</p><p><b>Niveaux :</b> ${esc(P.niveaux || '—')}</p>
+    <label class="small row" style="gap:8px"><input type="checkbox" data-act="referent" ${P.referent ? 'checked' : ''}> Je suis le référent de ma cellule</label></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start"><h2>Partager Kennedy 3.0</h2><p class="small muted">Faites scanner ce code à un collègue.</p><div class="qr" id="qr-app"></div>
+    <button class="btn ghost sm" data-act="share">Copier le lien</button></section>
+  <section class="card row wrap"><button class="btn ghost" data-act="theme">Changer de thème</button><button class="btn ghost" data-act="logout">Me déconnecter</button></section>`;
+}
+
+/* ---------- espace formateur ---------- */
+function vFormateur() {
+  if (!S.F) return `<div><p class="eyebrow">Réservé aux formateurs</p><h1 style="margin-top:6px">Espace formateur</h1></div>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px">
+    <label class="form">Code formateur<input id="f-code" type="password" value="${esc(sessionCode())}"></label>
+    ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
+    <button class="btn gold" data-act="f-login" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Chargement…' : 'Accéder au suivi'}</button></section>
+  <button class="btn ghost" data-act="go" data-v="${DB.profil ? 'home' : 'auth'}">Retour</button>`;
+  const F = S.F, profs = F.profs, AV = {};
+  F.avancement.forEach(x => { (AV[x.pseudo] = AV[x.pseudo] || {})[x.cle] = x.valeur });
+  const LI = {}; F.livrables.forEach(x => { (LI[x.pseudo] = LI[x.pseudo] || {})[x.type] = x.valeur });
+  const done = (p, k) => !!(AV[p] && AV[p][k]);
+  const pct = (p, a) => Math.round(a.etapes.filter((e, i) => done(p, `${a.id}:${i}`)).length / a.etapes.length * 100);
+  const miss = PARCOURS.flatMap(x => x.missions);
+  const avg = arr => arr.length ? Math.round(arr.reduce((s, x) => s + x, 0) / arr.length) : 0;
+  const cells = CELLULES.map(c => ({ c, P: profs.filter(p => p.cellule === c) })).filter(x => x.P.length);
+  const bars = (rows) => rows.map(([l, v]) => `<div class="chart-row"><span>${esc(l)}</span><div class="bar"><i style="width:${v}%;background:${v >= 80 ? 'var(--green)' : v >= 40 ? 'var(--gold)' : 'var(--red)'}"></i></div><b>${v}%</b></div>`).join('');
+  return `<div class="row wrap"><div style="flex:1"><p class="eyebrow">Suivi en direct</p><h1 style="margin-top:6px">Espace formateur</h1></div>
+    <button class="btn sm ghost" data-act="f-refresh">Actualiser</button><button class="btn sm ghost" data-act="f-out">Quitter</button></div>
+  <div class="grid2">
+    <section class="card"><p class="eyebrow">Inscrits</p><h1 style="margin-top:6px">${profs.length}</h1><p class="small muted">${cells.length} cellule(s)</p></section>
+    <section class="card"><p class="eyebrow">Missions du parcours</p><h1 style="margin-top:6px">${avg(profs.map(p => Math.round(miss.filter(m => done(p.pseudo, 'mission:' + m.id)).length / miss.length * 100)))}%</h1><p class="small muted">en moyenne</p></section>
+    <section class="card"><p class="eyebrow">Tests de positionnement</p><h1 style="margin-top:6px">${profs.filter(p => (LI[p.pseudo] || {}).test).length}</h1><p class="small muted">liens déposés</p></section>
+  </div>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Avancement des activités</h2>
+    ${bars(ACTIVITES.map(a => ['Activité ' + a.n, avg(profs.map(p => pct(p.pseudo, a)))]))}</section>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Par cellule</h2>
+    ${bars(cells.map(x => [x.c.replace(/ · .*/, '') + ' · ' + x.c.split(' · ')[1], avg(x.P.map(p => avg(ACTIVITES.map(a => pct(p.pseudo, a)))))]))}</section>
+  ${cells.map(x => `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>${esc(x.c)}</h2><div style="overflow:auto"><table class="t">
+    <tr><th>Prof</th><th>A1</th><th>A2</th><th>A3</th><th class="hide-sm">Parcours</th><th>Test</th><th>Mini-appli</th></tr>
+    ${x.P.map(p => { const l = LI[p.pseudo] || {}, m = Math.round(miss.filter(z => done(p.pseudo, 'mission:' + z.id)).length / miss.length * 100);
+      const lk = u => /^https?:\/\//.test(u || '') ? `<a href="${esc(u)}" target="_blank" rel="noopener">Ouvrir</a>` : '—';
+      return `<tr><td><b>${esc(p.prenom)} ${esc(p.nom)}</b>${p.referent ? ' <span class="pill gold">Réf.</span>' : ''}<br><span class="small muted">${esc(p.niveaux)} · vu ${esc(p.vu)}</span></td>
+      ${ACTIVITES.map(a => { const v = pct(p.pseudo, a); return `<td><span class="pill ${v === 100 ? 'ok' : v ? 'gold' : 'ko'}">${v}%</span></td>` }).join('')}
+      <td class="hide-sm">${m}%</td><td>${lk(l.test)}</td><td>${lk(l.miniapp)}</td></tr>` }).join('')}</table></div>
+    ${(() => { const c = F.livrables.filter(z => z.cellule === x.c && z.type === 'cdc'); if (!c.length) return '<p class="small muted">Cahier des charges : pas encore déposé.</p>'; let o = {}; try { o = JSON.parse(c[c.length - 1].valeur) } catch (e) {} return `<div class="note small"><b>Cahier des charges</b> · modules : ${esc((o.modules || []).join(', ') || '—')}<br>Priorités : ${esc(o.prio || '—')}<br>Échéancier : ${esc(o.echeancier || '—')}</div>` })()}
+  </section>`).join('')}
+  <section class="card"><p class="small muted">Les auto-évaluations d'entrée et de sortie sont analysées dans la feuille Google Sheets des formulaires (onglet « Analyse »).</p></section>`;
+}
+function sessionCode() { try { return sessionStorage.getItem('k3_fcode') || '' } catch (e) { return '' } }
+
+/* ======================= RENDU ======================= */
+function render() {
+  const logged = !!DB.profil;
+  if (!logged && !['auth', 'formateur'].includes(S.v)) S.v = 'auth';
+  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur };
+  $('#app').innerHTML = (views[S.v] || vHome)();
+  $('#topright').innerHTML = logged ? `<button class="chip gold" data-act="go" data-v="compte">${esc(DB.profil.prenom)}</button>` : '';
+  const nav = $('#nav'); nav.hidden = !logged;
+  if (logged) nav.firstElementChild.innerHTML = [['home', 'home', 'Accueil'], ['jour', 'day', 'Journée'], ['atelier', 'spark', 'Atelier'], ['parcours', 'route', 'Parcours'], ['cellule', 'team', 'Cellule']]
+    .map(([v, i, l]) => `<button class="${S.v === v || (v === 'atelier' && S.v === 'tache') ? 'on' : ''}" data-act="go" data-v="${v}">${ic(i, 22)}<span>${l}</span></button>`).join('');
+  afterRender();
+}
+function afterRender() {
+  const mk = (id, url) => { const el = document.getElementById(id); if (!el) return; if (window.QRCode) { el.innerHTML = ''; new QRCode(el, { text: url, width: 168, height: 168, colorDark: '#0F2552', colorLight: '#ffffff' }) } else setTimeout(() => mk(id, url), 400) };
+  if (S.v === 'evaluations') { mk('qr-entree', FORMS.entree); mk('qr-sortie', FORMS.sortie) }
+  if (S.v === 'compte') mk('qr-app', appUrl());
+  if (S.v === 'cellule' && !S.cel && apiOn() && !S.celLoading) loadCellule();
+}
+const appUrl = () => location.href.split('#')[0].split('?')[0];
+
+/* ======================= ACTIONS ======================= */
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act, v = b.dataset.v;
+  if (a === 'go') return go(v);
+  if (a === 'route') return route(v);
+  if (a === 'auth') { S.auth = v; S.err = ''; return render() }
+  if (a === 'signup') return signup();
+  if (a === 'login') return login();
+  if (a === 'logout') return logout();
+  if (a === 'kit') { setAv('kit:' + b.dataset.k, isDone('kit:' + b.dataset.k) ? '' : '1'); if (KIT.every(k => isDone('kit:' + k.k)) && !isDone('mission:m-kit')) setAv('mission:m-kit', '1'); return render() }
+  if (a === 'step') {
+    const k = `${b.dataset.a}:${b.dataset.i}`; setAv(k, isDone(k) ? '' : new Date().toISOString());
+    const act = ACTIVITES.find(x => x.id === b.dataset.a), mk = 'mission:m-' + act.id;
+    if (actPct(act).p === 100 && !isDone(mk)) { setAv(mk, '1'); toast('Activité terminée !') } else if (actPct(act).p < 100 && isDone(mk)) setAv(mk, '');
+    return render();
+  }
+  if (a === 'mission-tog') { setAv('mission:' + v, isDone('mission:' + v) ? '' : new Date().toISOString()); return render() }
+  if (a === 'mission') { setAv('mission:' + v, b.checked ? new Date().toISOString() : ''); return }
+  if (a === 'mission-auto') { if (!isDone('mission:' + v)) { setAv('mission:' + v, new Date().toISOString()); setTimeout(render, 300) } return }
+  if (a === 'grp') { S.grp = v; return render() }
+  if (a === 'tache') { const t = TACHES.find(x => x.id === v); if (t) S.grp = t.g; return go('tache', v) }
+  if (a === 'tache-done') { setAv('tache:' + v, isDone('tache:' + v) ? '' : new Date().toISOString()); return render() }
+  if (a === 'copy') { const el = document.getElementById('pr-' + b.dataset.i); if (el) copy(el.textContent); return }
+  if (a === 'referent') { DB.profil.referent = b.checked; save(); if (apiOn() && DB.jeton) api('sauver', Object.assign(auth(), { items: [], referent: b.checked })); toast(b.checked ? 'Vous êtes référent de la cellule.' : 'Référent retiré.'); return }
+  if (a === 'save-liv') { document.querySelectorAll('[data-liv]').forEach(i => { const k = i.dataset.liv, val = i.value.trim(); if ((DB.liv[k] || '') !== val) { DB.liv[k] = val; enqueue({ a: 'livrable', type: k, valeur: val }) } }); save(); toast('Livrables enregistrés.'); S.cel = null; return render() }
+  if (a === 'save-cdc' || a === 'cdc-plan') {
+    const o = {}; document.querySelectorAll('[data-cdc]').forEach(i => o[i.dataset.cdc] = i.value.trim());
+    o.modules = [...document.querySelectorAll('[data-cdcm]:checked')].map(i => i.value);
+    DB.liv.cdc = JSON.stringify(o); save(); enqueue({ a: 'livrable', type: 'cdc', valeur: DB.liv.cdc });
+    if (a === 'cdc-plan') {
+      DB.vars.cdc = `Pour qui : ${o.qui}\nPour quoi : ${o.quoi}\nModules : ${o.modules.join(', ')}\nPriorités de la version 1 : ${o.prio}\nDonnées à préparer : ${o.donnees}\nÉchéancier : ${o.echeancier}`; save();
+      return go('tache', 'plan-app');
+    }
+    toast('Cahier des charges enregistré.'); S.cel = null; return render();
+  }
+  if (a === 'cel-load') { S.cel = null; return loadCellule() }
+  if (a === 'share') { copy(appUrl()); return }
+  if (a === 'theme') { const r = document.documentElement, cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); r.dataset.theme = cur === 'dark' ? 'light' : 'dark'; DB.theme = r.dataset.theme; save(); return }
+  if (a === 'f-login') { const c = $('#f-code').value.trim(); try { sessionStorage.setItem('k3_fcode', c) } catch (e2) {} return loadF(c) }
+  if (a === 'f-refresh') return loadF(sessionCode());
+  if (a === 'f-out') { S.F = null; try { sessionStorage.removeItem('k3_fcode') } catch (e2) {} return render() }
+});
+document.addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.var; if (!k || S.v !== 'tache') return;
+  DB.vars[k] = e.target.value; save();
+  const t = TACHES.find(x => x.id === S.p), v = {}; t.champs.forEach(c => v[c] = String(defVal(c)).trim() || '[' + ((CH[c] || {}).label || c).toLowerCase() + ']');
+  t.prompts(v).forEach((p, i) => { const el = document.getElementById('pr-' + i); if (el) el.textContent = p.texte });
+});
+
+/* ---------- compte ---------- */
+async function signup() {
+  const g = id => ($(id) || {}).value || '';
+  const P = { prenom: g('#f-prenom').trim(), nom: g('#f-nom').trim(), cellule: g('#f-cellule'), disciplines: g('#f-disc').trim(),
+    niveaux: [...document.querySelectorAll('[name=niv]:checked')].map(i => i.value).join(','), pseudo: g('#f-pseudo').trim().toLowerCase().replace(/\s+/g, '') };
+  const pin = g('#f-pin').trim();
+  if (!P.prenom || !P.nom || !P.cellule) { S.err = 'Prénom, nom et cellule sont obligatoires.'; return render() }
+  if (!/^[a-z0-9._-]{3,20}$/.test(P.pseudo)) { S.err = 'Pseudo : 3 à 20 lettres, chiffres, point ou tiret.'; return render() }
+  if (!/^\d{4}$/.test(pin)) { S.err = 'Le code secret doit avoir 4 chiffres.'; return render() }
+  if (!apiOn()) { DB.profil = P; DB.jeton = 'local'; save(); toast('Compte créé sur cet appareil (mode démonstration).'); return go('home') }
+  S.busy = true; S.err = ''; render();
+  const r = await api('inscrire', Object.assign({ pin }, P)); S.busy = false;
+  if (!r.ok) { S.err = r.erreur || 'Inscription impossible.'; return render() }
+  DB.profil = r.profil; DB.jeton = r.jeton; save(); flush(); toast('Bienvenue dans Kennedy 3.0 !'); go('home');
+}
+async function login() {
+  const pseudo = ($('#f-pseudo').value || '').trim().toLowerCase(), pin = ($('#f-pin').value || '').trim();
+  if (!apiOn()) { S.err = "Le serveur n'est pas encore branché : utilisez « Créer mon compte »."; return render() }
+  S.busy = true; S.err = ''; render();
+  const r = await api('connexion', { pseudo, pin }); S.busy = false;
+  if (!r.ok) { S.err = r.erreur || 'Connexion impossible.'; return render() }
+  DB.profil = r.profil; DB.jeton = r.jeton; DB.av = (r.donnees && r.donnees.avancement) || {}; DB.liv = (r.donnees && r.donnees.livrables) || {}; DB.queue = []; save();
+  toast('Content de vous revoir, ' + r.profil.prenom + ' !'); go('home');
+}
+function logout(silent) { if (!silent && !confirm('Se déconnecter de cet appareil ?')) return; const th = DB.theme; DB = { av: {}, liv: {}, vars: {}, queue: [], theme: th }; save(); S.cel = null; go('auth') }
+async function loadCellule() {
+  S.celLoading = true; S.celErr = '';
+  const r = await api('cellule', auth()); S.celLoading = false;
+  if (r.ok) S.cel = r; else { S.celErr = r.erreur || 'Chargement impossible.'; if (r.session) return sessionLost() }
+  if (S.v === 'cellule') render();
+}
+async function loadF(code) {
+  S.busy = true; S.err = ''; render();
+  const r = await api('formateur', { code }); S.busy = false;
+  if (!r.ok) { S.err = r.erreur || 'Accès refusé.'; S.F = null } else S.F = r;
+  render();
+}
+
+/* ---------- démarrage ---------- */
+if (DB.theme) document.documentElement.dataset.theme = DB.theme;
+if (!navigator.onLine) $('#offline').hidden = false;
+S.v = DB.profil ? 'home' : 'auth';
+render(); setTimeout(flush, 1200);
+setInterval(() => { if (S.v === 'home' || S.v === 'jour') render() }, 60000);
+setInterval(() => { if (S.v === 'formateur' && S.F) loadF(sessionCode()) }, 45000);
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
