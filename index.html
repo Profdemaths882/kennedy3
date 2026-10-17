@@ -257,7 +257,7 @@ async function flush() {
   if (ok) { DB.queue = []; save() }
   flushing = false;
 }
-function sessionLost() { flushing = false; toast('Session expirée : reconnectez-vous.'); logout(true) }
+function sessionLost() { flushing = false; DB.queue = []; save(); toast('Reconnectez-vous avec votre pseudo et votre code secret.'); S.auth = 'login'; logout(true) }
 window.addEventListener('online', () => { $('#offline').hidden = true; flush() });
 window.addEventListener('offline', () => { $('#offline').hidden = false });
 
@@ -301,6 +301,7 @@ function vAuth() {
     <h1 style="margin:8px 0 10px">Kennedy 3.0</h1>
     <p>L'application de formation des enseignants : l'IA et les applications éducatives au service des apprentissages. Un compte par prof, toute la formation au même endroit, en présentiel et à distance.</p></section>
   ${apiOn() ? '' : `<p class="note small"><b>Mode démonstration :</b> le serveur n'est pas encore branché. Les données restent sur cet appareil.</p>`}
+  ${S.migr ? `<p class="note small"><b>Kennedy 3.0 est maintenant relié au serveur.</b> Le compte créé avant n'existait que sur ce téléphone : créez votre compte une dernière fois, il sera ensuite retrouvé partout.</p>` : ''}
   <section class="card" style="display:flex;flex-direction:column;gap:14px">
     <div class="tabs"><button class="${su ? 'on' : ''}" data-act="auth" data-v="signup">Créer mon compte</button><button class="${su ? '' : 'on'}" data-act="auth" data-v="login">Me connecter</button></div>
     ${su ? `
@@ -1006,6 +1007,8 @@ async function loadF(code) {
 /* ---------- démarrage ---------- */
 if (DB.theme) document.documentElement.dataset.theme = DB.theme;
 if (!navigator.onLine) $('#offline').hidden = false;
+// compte créé en mode démonstration (avant le branchement du serveur) : on repart proprement
+if (apiOn() && DB.profil && (!DB.jeton || DB.jeton === 'local')) { const th = DB.theme, ae = DB.ae; DB = { av: {}, liv: {}, vars: {}, queue: [], theme: th, ae }; save(); S.auth = 'signup'; S.migr = true }
 S.v = DB.profil ? 'home' : 'auth'; S.depth = 0;
 (() => { const q = new URLSearchParams(location.search); if (q.get('eval')) { S.v = 'autoeval'; S.p = q.get('eval') === 'sortie' ? 'sortie' : 'entree' } else if (q.has('tableau')) S.v = 'tableau';
   if (q.get('invite')) { S.invite = q.get('invite').toUpperCase(); if (DB.profil) S.v = 'compte'; else { S.v = 'auth'; S.auth = 'signup'; S.su = { formateur: true } } } })();
