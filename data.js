@@ -474,6 +474,42 @@ const LIVRABLES = [
   { k: "miniapp", t: "Lien de la mini-application", ph: "https://…", type: "url" }
 ];
 
+/* ---------- travaux à déposer, corrigés automatiquement (grille sur 20) ----------
+   critère « coche » : la personne coche ; critère « auto » : calculé par l'application. */
+const TRAVAUX = [
+  { id: "a1", t: "Mon projet Claude", act: "Activité 1", qui: "Chacun dépose son travail",
+    champs: [{ k: "docs", l: "Nombre de documents déposés dans mon projet", type: "number" }],
+    criteres: [
+      { t: "Mon projet est créé et nommé « Mon année 2026-2027 · [discipline] »", pts: 3, conseil: "Créez le projet et nommez-le avec votre discipline." },
+      { auto: "docs", t: "Les documents du kit sont dans le projet", pts: 4, conseil: "Déposez au moins 5 documents : emploi du temps, classes, programmes, progression, manuels." },
+      { t: "Les instructions du projet sont collées", pts: 3, conseil: "Collez les instructions (Atelier › Les instructions de mon projet)." },
+      { t: "Google Agenda est connecté et mes cours sont placés", pts: 4, conseil: "Connectez Google Agenda et demandez à Claude de placer votre emploi du temps." },
+      { t: "J'ai produit un résumé, une carte mentale et des flashcards", pts: 4, conseil: "Produisez les trois supports pour la leçon de la semaine." },
+      { t: "J'ai vérifié ces productions avec le programme et le manuel", pts: 2, conseil: "Relisez avec le programme et le manuel avant d'utiliser en classe." }
+    ] },
+  { id: "a2", t: "Le test de positionnement", act: "Activité 2", qui: "Un dépôt par niveau",
+    champs: [{ k: "niveau", l: "Niveau du test", type: "niveau" }, { k: "lien", l: "Lien élève du formulaire", type: "url", ph: "https://docs.google.com/forms/…/viewform" }, { k: "nbq", l: "Nombre de questions", type: "number" }],
+    criteres: [
+      { auto: "lienForms", t: "Le lien du formulaire est valide", pts: 3, conseil: "Collez le lien élève du formulaire (…/viewform ou forms.gle), pas le lien de modification." },
+      { auto: "nbq", t: "Assez de questions pour couvrir les compétences", pts: 3, conseil: "Visez 20 questions : au moins 2 par compétence." },
+      { t: "Les questions portent sur les compétences de la classe précédente", pts: 4, conseil: "Reprenez les compétences exigibles de la classe précédente (ex. 5e pour l'entrée en 4e)." },
+      { t: "Chaque question a 4 choix, une bonne réponse et une explication", pts: 3, conseil: "Complétez les choix et ajoutez une explication courte à chaque question." },
+      { t: "Le quiz est auto-corrigé (points et corrigé activés)", pts: 2, conseil: "Dans le script, activez le mode quiz avec 1 point par question." },
+      { t: "Un collègue a vérifié et validé les questions", pts: 3, conseil: "Faites relire par un collègue de la cellule avant de faire passer le test." },
+      { t: "Testé sur téléphone ou tablette, les réponses arrivent dans Sheets", pts: 2, conseil: "Répondez une fois au test et vérifiez la feuille des réponses." }
+    ] },
+  { id: "a3", t: "La production de ma cellule", act: "Activité 3", qui: "Le référent dépose pour la cellule",
+    champs: [{ k: "type", l: "Production", type: "choix", opts: ["Mini-application", "Carte mentale", "Bande dessinée"] }, { k: "lien", l: "Lien de partage", type: "url", ph: "https://…" }],
+    criteres: [
+      { auto: "lien", t: "Le lien de partage est valide", pts: 3, conseil: "Collez un lien de partage qui commence par https://." },
+      { t: "Le contenu est exact et conforme au programme", pts: 4, conseil: "Relisez chaque information avec le programme et le manuel." },
+      { t: "Lisible : testée sur tablette ou projetée au tableau", pts: 3, conseil: "Testez sur tablette ou au vidéoprojecteur, du fond de la salle." },
+      { t: "Au moins 3 améliorations demandées à l'IA", pts: 3, conseil: "Demandez 3 améliorations, une à la fois (texte, lisibilité, exercices)." },
+      { t: "Utilisable seuls par les élèves de la classe visée", pts: 3, conseil: "Simplifiez les consignes pour que l'élève avance sans aide." },
+      { auto: "cdc", t: "Le cahier des charges de l'application est rempli", pts: 4, conseil: "Complétez le cahier des charges dans « Ma cellule » (pour qui, pour quoi, modules, données, échéancier)." }
+    ] }
+];
+
 const MODULES_APP = ["Test de positionnement", "Cours rédigés", "Exercices corrigés", "Quiz auto-corrigés", "Évaluations notées sur 20", "Groupes de besoin", "Fiche de résultats", "Classement (pseudos)", "Emplois du temps", "Planification des séances", "Suivi des notes par le prof"];
 
 const REGLES = [

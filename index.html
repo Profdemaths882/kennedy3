@@ -315,8 +315,8 @@ function vAuth() {
       <label class="form">Pseudo (pour me connecter)<input id="f-pseudo" autocapitalize="none" placeholder="ex. awa.diop" value="${esc(F0.pseudo || '')}"></label>
       <label class="form">Code secret (4 chiffres)<input id="f-pin" inputmode="numeric" maxlength="4" type="password"></label>
     </div>
-    <label class="row small" style="gap:8px;font-weight:800;color:var(--ink)"><input type="checkbox" id="f-isf" ${F0.formateur ? 'checked' : ''} onchange="document.getElementById('f-fbox').hidden=!this.checked"> Je suis formateur ou formatrice</label>
-    <label class="form" id="f-fbox" ${F0.formateur ? '' : 'hidden'}>Code formateur<input id="f-fcode" type="password" autocomplete="off"></label>` : `
+    <label class="row small" style="gap:8px;font-weight:800;color:var(--ink)"><input type="checkbox" id="f-isf" ${F0.formateur ? 'checked' : ''} onchange="document.getElementById('f-fbox').hidden=!this.checked"> J'ai reçu une invitation de formateur</label>
+    <label class="form" id="f-fbox" ${F0.formateur ? '' : 'hidden'}>Code d'invitation<input id="f-fcode" autocomplete="off" value="${esc(S.invite || '')}" placeholder="F-XXXXXX"></label>` : `
     <label class="form">Pseudo<input id="f-pseudo" autocapitalize="none"></label>
     <label class="form">Code secret<input id="f-pin" inputmode="numeric" maxlength="4" type="password"></label>`}
     ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
@@ -332,7 +332,7 @@ function vHome() {
     { v: 'jour', i: 'day', c: '', t: 'La journée du 20 octobre', d: 'Programme, horaires, ce qui se passe maintenant' },
     { v: 'evaluations', i: 'qr', c: 'o', t: 'Auto-évaluations', d: DB.ae && DB.ae.entree ? "Entrée envoyée ✓ · la sortie le 20 octobre" : "À faire avant le 20 octobre : 2 minutes" },
     { v: 'tableau', i: 'chart', c: 'g', t: 'Tableau de bord', d: 'Les résultats du groupe, en direct' },
-    ...(P.formateur ? [{ v: 'formateur', i: 'team', c: 'o', t: 'Espace formateur', d: 'Suivi en direct de tous les profs' }] : []),
+    ...(P.formateur ? [{ v: 'formateur', i: 'team', c: 'o', t: 'Espace formateur', d: 'Suivi en direct de tous les profs' }, { v: 'corrections', i: 'check', c: 'g', t: 'Corriger les travaux', d: 'Notes automatiques, validation, commentaires' }] : [{ v: 'travaux', i: 'check', c: 'g', t: 'Mes travaux', d: 'Déposer, note automatique sur 20' }]),
     { v: 'kit', i: 'bag', c: '', t: 'Mon kit', d: `${KIT.filter(k => isDone('kit:' + k.k)).length} / ${KIT.length} éléments prêts` },
     { v: 'atelier', i: 'spark', c: 'o', t: "L'atelier Claude", d: 'La bonne demande et les consignes pour chaque tâche' },
     { v: 'methode', i: 'layers', c: 'g', t: 'La méthode ProfDeMaths', d: 'Le traitement des connaissances, étape par étape' },
@@ -547,6 +547,99 @@ function vTableau() {
   return head + live + kpis + words + perso + list + parts + detail + qr;
 }
 
+
+/* ======================= TRAVAUX : dépôt et correction automatique ======================= */
+function cdcCount(raw) { let o = {}; try { o = JSON.parse(raw || '{}') } catch (e) {} return ['qui', 'quoi', 'prio', 'donnees', 'echeancier'].filter(k => String(o[k] || '').trim()).length + ((o.modules || []).length ? 1 : 0) }
+function noteTravail(T, d) {
+  const v = (d && d.v) || {}, ch = (d && d.c) || {}; let tot = 0;
+  const det = T.criteres.map((c, i) => { let g = 0; const L = String(v.lien || '').trim();
+    if (!c.auto) g = ch[i] ? c.pts : 0;
+    else if (c.auto === 'docs') { const n = +v.docs || 0; g = n >= 5 ? c.pts : n >= 3 ? Math.round(c.pts / 2) : n >= 1 ? 1 : 0 }
+    else if (c.auto === 'nbq') { const n = +v.nbq || 0; g = n >= 20 ? c.pts : n >= 10 ? 2 : n >= 5 ? 1 : 0 }
+    else if (c.auto === 'lienForms') g = /^https:\/\/(docs\.google\.com\/forms\/|forms\.gle\/)/.test(L) && !/\/edit(\b|$|\?)/.test(L) ? c.pts : 0;
+    else if (c.auto === 'lien') g = /^https:\/\/[^\s/]+\.[^\s]+/.test(L) ? c.pts : 0;
+    else if (c.auto === 'cdc') { const n = +(d && d.cdc) || 0; g = n >= 5 ? c.pts : n >= 3 ? 2 : n >= 1 ? 1 : 0 }
+    tot += g; return { t: c.t, pts: c.pts, g, conseil: c.conseil, auto: !!c.auto } });
+  return { note: tot, mention: tot >= 16 ? 'Très bien' : tot >= 12 ? 'Bien' : tot >= 8 ? 'À compléter' : 'À reprendre', det };
+}
+const mentionPill = m => `<span class="pill ${m === 'Très bien' || m === 'Bien' ? 'ok' : m === 'À compléter' ? 'gold' : 'ko'}">${esc(m)}</span>`;
+function retourHtml(r, compact) {
+  const ok = r.det.filter(x => x.g === x.pts), ko = r.det.filter(x => x.g < x.pts);
+  return `${ok.length ? `<p class="small" style="margin:6px 0 2px"><b style="color:var(--green)">Points forts</b></p>${ok.map(x => `<p class="small" style="margin:2px 0">✓ ${esc(x.t)}</p>`).join('')}` : ''}
+    ${ko.length ? `<p class="small" style="margin:8px 0 2px"><b style="color:var(--gold-ink)">Pour améliorer</b></p>${ko.map(x => `<p class="small" style="margin:2px 0">→ ${esc(x.conseil)}${compact ? '' : ` <span class="muted">(${x.g}/${x.pts})</span>`}</p>`).join('')}` : '<p class="small" style="margin-top:6px"><b>Tout est fait. Bravo !</b></p>'}`;
+}
+function comFor(list, pseudo, trav) { return (list || []).find(x => x.travail === trav && (!pseudo || x.pseudo === pseudo)) }
+function vTravaux() {
+  if (!S.comLoaded && apiOn() && DB.jeton && DB.jeton !== 'local') { S.comLoaded = true; api('mesCommentaires', auth()).then(r => { if (r.ok) { DB.com = r.commentaires; save(); if (S.v === 'travaux') render() } }) }
+  return `<div><p class="eyebrow">Corrigés automatiquement</p><h1 style="margin-top:6px">Mes travaux</h1>
+  <p class="muted" style="margin-top:6px">Pour chaque activité, déposez votre travail : l'application le corrige tout de suite sur 20 et vous dit quoi améliorer. Les formateurs le valident ensuite.</p></div>
+  ${TRAVAUX.map(T => { let d = null; try { d = JSON.parse(DB.liv['trav:' + T.id] || 'null') } catch (e) {} const r = d ? noteTravail(T, d) : null, c = comFor(DB.com, null, 'trav:' + T.id);
+    return `<section class="card" style="display:flex;flex-direction:column;gap:10px"><p class="eyebrow">${esc(T.act)} · ${esc(T.qui)}</p>
+      <div class="row wrap" style="gap:10px"><h2 style="flex:1">${esc(T.t)}</h2>${r ? `<b style="font-family:var(--display);font-size:24px;color:var(--ink)">${r.note}/20</b> ${mentionPill(r.mention)}` : '<span class="pill">Pas encore déposé</span>'}</div>
+      ${c ? `<div class="note small"><b>${esc(c.statut || 'Commentaire')}</b> · formateur : ${esc(c.texte || '')}</div>` : ''}
+      <button class="btn ${r ? 'ghost' : 'gold'}" style="align-self:flex-start" data-act="tr-open" data-v="${T.id}">${r ? 'Voir ou modifier mon dépôt' : 'Déposer mon travail'}</button></section>` }).join('')}`;
+}
+function trState(id) {
+  if (!S.tr || S.tr.id !== id) { let d = {}; try { d = JSON.parse(DB.liv['trav:' + id] || '{}') } catch (e) {} S.tr = { id, v: Object.assign({}, d.v || {}), c: Object.assign({}, d.c || {}) } }
+  return S.tr;
+}
+function trResult() { const T = TRAVAUX.find(x => x.id === S.tr.id); return noteTravail(T, { v: S.tr.v, c: S.tr.c, cdc: cdcCount(DB.liv.cdc) }) }
+function scoreBox(r) { return `<div class="row wrap" style="gap:12px;align-items:center"><span style="font-family:var(--display);font-weight:900;font-size:40px;color:var(--ink)">${r.note}<small style="font-size:.45em">/20</small></span>${mentionPill(r.mention)}</div>${retourHtml(r)}` }
+function vTravail(id) {
+  const T = TRAVAUX.find(x => x.id === id); if (!T) return vTravaux();
+  const st = trState(id), r = trResult(), c = comFor(DB.com, null, 'trav:' + id);
+  const field = f => { const val = esc(st.v[f.k] || '');
+    if (f.type === 'niveau') return `<label class="form">${esc(f.l)}<select data-tr="${f.k}"><option value="">Choisir…</option>${NIVEAUX.map(n => `<option ${st.v[f.k] === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
+    if (f.type === 'choix') return `<label class="form">${esc(f.l)}<select data-tr="${f.k}"><option value="">Choisir…</option>${f.opts.map(n => `<option ${st.v[f.k] === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>`;
+    return `<label class="form">${esc(f.l)}<input data-tr="${f.k}" type="${f.type === 'number' ? 'number' : f.type === 'url' ? 'url' : 'text'}" ${f.type === 'number' ? 'min="0" inputmode="numeric"' : ''} value="${val}" placeholder="${esc(f.ph || '')}"></label>` };
+  return `<button class="btn ghost sm" style="align-self:flex-start" data-act="go" data-v="travaux">← Mes travaux</button>
+  <section class="hero"><p class="eyebrow">${esc(T.act)} · ${esc(T.qui)}</p><h1 style="margin:6px 0 8px">${esc(T.t)}</h1><p>Renseignez votre dépôt et cochez ce qui est fait : la note se calcule toute seule. Soyez honnête, les formateurs vérifient.</p></section>
+  ${c ? `<div class="note"><b>${esc(c.statut || 'Commentaire')} · formateur :</b> ${esc(c.texte || '')}</div>` : ''}
+  <section class="card" style="display:flex;flex-direction:column;gap:12px"><h2>1 · Mon dépôt</h2><div class="grid2" style="gap:12px">${T.champs.map(field).join('')}</div>
+    ${T.criteres.some(x => x.auto === 'cdc') ? `<p class="small muted">Cahier des charges : ${cdcCount(DB.liv.cdc)}/6 rubriques remplies dans « Ma cellule ».</p>` : ''}</section>
+  <section class="card" style="display:flex;flex-direction:column;gap:6px"><h2>2 · Ce qui est fait</h2>
+    ${T.criteres.map((x, i) => x.auto ? `<p class="small muted" style="margin:6px 0">⚙ ${esc(x.t)} · vérifié automatiquement (${x.pts} pts)</p>` : `<label class="row" style="gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)"><input type="checkbox" data-trc="${i}" ${st.c[i] ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px"><span style="flex:1">${esc(x.t)}</span><span class="pill">${x.pts} pts</span></label>`).join('')}</section>
+  <section class="card" style="display:flex;flex-direction:column;gap:6px;border:2px solid var(--gold)"><h2>3 · Ma note automatique</h2><div id="tr-score">${scoreBox(r)}</div></section>
+  <button class="btn gold wide" data-act="tr-send">Déposer mon travail</button>`;
+}
+function trUpdateScore() { const el = document.getElementById('tr-score'); if (el) el.innerHTML = scoreBox(trResult()) }
+function trSend() {
+  const T = TRAVAUX.find(x => x.id === S.tr.id), r = trResult();
+  if (T.champs.some(f => f.k === 'lien') && !String(S.tr.v.lien || '').trim()) { toast('Collez le lien de votre travail.'); return }
+  const d = { v: S.tr.v, c: S.tr.c, cdc: cdcCount(DB.liv.cdc), note: r.note, date: new Date().toISOString() }, k = 'trav:' + T.id, val = JSON.stringify(d);
+  DB.liv[k] = val; enqueue({ a: 'livrable', type: k, valeur: val });
+  if (T.id === 'a2' && S.tr.v.lien) { DB.liv.test = S.tr.v.lien; enqueue({ a: 'livrable', type: 'test', valeur: S.tr.v.lien }) }
+  if (T.id === 'a3' && S.tr.v.lien) { DB.liv.miniapp = S.tr.v.lien; enqueue({ a: 'livrable', type: 'miniapp', valeur: S.tr.v.lien }) }
+  save(); toast(`Déposé : ${r.note}/20 · ${r.mention}`); S.tr = null; go('travaux');
+}
+
+/* ---------- correction par les formateurs (projetable) ---------- */
+function vCorrections() {
+  const head = `<div class="row wrap" style="gap:10px"><div style="flex:1;min-width:220px"><p class="eyebrow">Travaux des cellules · corrigés automatiquement</p><h1 style="margin-top:6px">Les travaux déposés</h1></div>
+    <button class="btn sm ghost" data-act="f-refresh">${ic('refresh', 16)} Actualiser</button><button class="btn sm" data-act="proj">${document.body.classList.contains('proj') ? 'Quitter la projection' : 'Projeter'}</button></div>`;
+  if (!S.F) return head + `<section class="card"><p class="muted">${S.err ? esc(S.err) : 'Chargement…'}</p></section>`;
+  const F = S.F, proj = document.body.classList.contains('proj'), id = S.crA || 'a2', T = TRAVAUX.find(x => x.id === id);
+  const prof = {}; F.profs.forEach(p => prof[p.pseudo] = p);
+  const deps = F.livrables.filter(x => x.type === 'trav:' + id).map(x => { let d = {}; try { d = JSON.parse(x.valeur) } catch (e) {} return { x, d, r: noteTravail(T, d), p: prof[x.pseudo] || { prenom: x.pseudo, nom: '' }, c: comFor(F.commentaires, x.pseudo, 'trav:' + id) } });
+  const nProfs = F.profs.filter(p => !p.formateur).length, moy = deps.length ? Math.round(deps.reduce((a, b) => a + b.r.note, 0) / deps.length * 10) / 10 : null;
+  const tabs = `<div class="tabs">${TRAVAUX.map(t => `<button class="${t.id === id ? 'on' : ''}" data-act="cr-tab" data-v="${t.id}">${esc(t.act)} · ${esc(t.t)}</button>`).join('')}</div>`;
+  const kpis = `<div class="kpis"><div class="kpi"><span class="v">${deps.length}</span><span class="l">travaux déposés${id === 'a1' ? ' sur ' + nProfs + ' profs' : ''}</span></div>
+    <div class="kpi"><span class="v">${moy === null ? '—' : String(moy).replace('.', ',')}<small style="font-size:.5em"> /20</small></span><span class="l">note moyenne automatique</span></div>
+    <div class="kpi"><span class="v">${deps.filter(z => z.c && z.c.statut === 'Validé').length}</span><span class="l">validés par les formateurs</span></div></div>`;
+  const cells = CELLULES.map(c => ({ c, D: deps.filter(z => (z.x.cellule || z.p.cellule) === c) })).filter(g => g.D.length);
+  const card = z => { const extra = [z.d.v && z.d.v.niveau, z.d.v && z.d.v.type].filter(Boolean).join(' · '), L = z.d.v && z.d.v.lien;
+    return `<div class="card" style="display:flex;flex-direction:column;gap:6px;border-left:6px solid ${z.r.note >= 12 ? 'var(--green)' : z.r.note >= 8 ? 'var(--gold)' : 'var(--red)'}">
+      <div class="row wrap" style="gap:8px"><b style="flex:1;color:var(--ink);font-size:17px">${esc(z.p.prenom)} ${esc(z.p.nom || '')}${extra ? ` <span class="small muted">· ${esc(extra)}</span>` : ''}</b>
+        <b style="font-family:var(--display);font-size:26px;color:var(--ink)">${z.r.note}/20</b> ${mentionPill(z.r.mention)}</div>
+      ${/^https?:\/\//.test(L || '') ? `<a class="small" href="${esc(L)}" target="_blank" rel="noopener">Ouvrir le travail</a>` : ''}
+      ${retourHtml(z.r, true)}
+      ${z.c ? `<div class="note small"><b>${esc(z.c.statut || '')}</b>${z.c.texte ? ' · ' + esc(z.c.texte) : ''} <span class="muted">(${esc(z.c.par)})</span></div>` : ''}
+      ${proj ? '' : `<textarea id="cr-${esc(z.x.pseudo)}" rows="2" placeholder="Votre commentaire (facultatif)">${esc((z.c && z.c.texte) || '')}</textarea>
+      <div class="row wrap" style="gap:8px"><button class="btn sm" data-act="cr-com" data-v="${esc(z.x.pseudo)}" data-s="Validé">✓ Valider</button><button class="btn sm ghost" data-act="cr-com" data-v="${esc(z.x.pseudo)}" data-s="À revoir">À revoir</button></div>`}</div>` };
+  return head + tabs + kpis + (deps.length ? cells.map(g => `<section style="display:flex;flex-direction:column;gap:10px"><h2>${esc(g.c)}</h2><div class="g2f">${g.D.sort((a, b) => b.r.note - a.r.note).map(card).join('')}</div></section>`).join('')
+    : `<section class="card"><p class="muted">Aucun travail déposé pour ${esc(T.act)} pour le moment.</p></section>`);
+}
+
 function vAct(id) {
   const a = ACTIVITES.find(x => x.id === id); if (!a) return vHome();
   const x = actPct(a);
@@ -564,7 +657,7 @@ function vAct(id) {
         const alt = e.alt ? `<button class="btn sm ${mine ? 'gold' : 'ghost'}" style="align-self:flex-start" data-act="tache" data-v="${e.alt.tache}">${ic('book', 16)} ${esc(e.alt.label)}</button>` : '';
         return `<div class="row wrap" style="gap:8px">${mine ? alt + main : main + alt}</div>` })()}</div></div>` }).join('')}
   </section>
-  ${id === 'a2' || id === 'a3' ? `<button class="btn gold" data-act="go" data-v="cellule">Déposer mes livrables dans « Ma cellule »</button>` : ''}
+  <button class="btn gold wide" data-act="tr-open" data-v="${id}">${ic('check', 18)} Déposer le travail de l'activité ${a.n} (corrigé automatiquement)</button>
   ${x.p === 100 ? `<p class="note"><b>Bravo !</b> Activité terminée.</p>` : ''}`;
 }
 
@@ -688,8 +781,8 @@ function vCompte() {
   <section class="card" style="display:flex;flex-direction:column;gap:10px"><p><b>Disciplines :</b> ${esc(P.disciplines || '—')}</p><p><b>Niveaux :</b> ${esc(P.niveaux || '—')}</p>
     <label class="small row" style="gap:8px"><input type="checkbox" data-act="referent" ${P.referent ? 'checked' : ''}> Je suis le référent de ma cellule</label></section>
   ${P.formateur ? `<section class="card row wrap" style="gap:12px;align-items:center"><span class="pill gold">Compte formateur</span><span class="small muted" style="flex:1">Vous avez accès au suivi de tous les profs.</span><button class="btn sm" data-act="go" data-v="formateur">Espace formateur</button></section>`
-  : `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Vous êtes formateur ?</h2><p class="small muted">Entrez le code formateur pour transformer ce compte en compte formateur.</p>
-    <label class="form">Code formateur<input id="f-upcode" type="password" autocomplete="off"></label>${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
+  : `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Vous êtes invité comme formateur ?</h2><p class="small muted">Entrez le code d'invitation reçu pour transformer ce compte en compte formateur.</p>
+    <label class="form">Code d'invitation<input id="f-upcode" autocomplete="off" value="${esc(S.invite || '')}" placeholder="F-XXXXXX"></label>${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
     <button class="btn" data-act="f-upgrade" ${S.busy ? 'disabled' : ''}>Activer l'accès formateur</button></section>`}
   <section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start"><h2>Partager Kennedy 3.0</h2><p class="small muted">Faites scanner ce code à un collègue.</p><div class="qr" id="qr-app"></div>
     <button class="btn ghost sm" data-act="share">Copier le lien</button></section>
@@ -700,7 +793,8 @@ function vCompte() {
 function vFormateur() {
   if (!S.F) return `<div><p class="eyebrow">Réservé aux formateurs</p><h1 style="margin-top:6px">Espace formateur</h1></div>
   <section class="card" style="display:flex;flex-direction:column;gap:12px">
-    <label class="form">Code formateur<input id="f-code" type="password" value="${esc(sessionCode())}"></label>
+    <label class="form">Code administrateur<input id="f-code" type="password" value="${esc(sessionCode())}"></label>
+    <p class="small muted">Les formateurs invités se connectent avec leur compte (pseudo et code secret).</p>
     ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
     <button class="btn gold" data-act="f-login" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Chargement…' : 'Accéder au suivi'}</button></section>
   <button class="btn ghost" data-act="go" data-v="${DB.profil ? 'home' : 'auth'}">Retour</button>`;
@@ -733,6 +827,14 @@ function vFormateur() {
       <td class="hide-sm">${m}%</td><td>${lk(l.test)}</td><td>${lk(l.miniapp)}</td></tr>` }).join('')}</table></div>
     ${(() => { const c = F.livrables.filter(z => z.cellule === x.c && z.type === 'cdc'); if (!c.length) return '<p class="small muted">Cahier des charges : pas encore déposé.</p>'; let o = {}; try { o = JSON.parse(c[c.length - 1].valeur) } catch (e) {} return `<div class="note small"><b>Cahier des charges</b> · modules : ${esc((o.modules || []).join(', ') || '—')}<br>Priorités : ${esc(o.prio || '—')}<br>Échéancier : ${esc(o.echeancier || '—')}</div>` })()}
   </section>`).join('')}
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Les formateurs</h2>
+    ${forms.map(p => `<div class="row wrap" style="gap:8px"><b style="flex:1;color:var(--ink)">${esc(p.prenom)} ${esc(p.nom)}</b>${p.admin ? '<span class="pill gold">Formateur principal</span>' : '<span class="pill">Formateur</span>'}${F.admin && !p.admin ? `<button class="btn sm ghost" data-act="f-retirer" data-v="${esc(p.pseudo)}" data-n="${esc(p.prenom)}">Retirer</button>` : ''}</div>`).join('') || '<p class="small muted">—</p>'}
+    ${F.admin ? `<div style="border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:10px"><h3>Inviter un formateur</h3>
+      <p class="small muted">Vous seul pouvez inviter. L'invitation sert une seule fois : la personne crée elle-même son compte avec le lien.</p>
+      <div class="row wrap" style="gap:8px"><input id="f-invnom" placeholder="Nom de la personne (ex. Mme Diop Aminata Mbaye)" style="flex:1;min-width:200px"><button class="btn gold" data-act="f-invite">Créer l'invitation</button></div>
+      ${S.inv ? `<div class="note" style="display:flex;flex-direction:column;gap:8px;align-items:flex-start"><b>Invitation pour ${esc(S.inv.pour)} · code ${esc(S.inv.code)}</b><span class="small" style="word-break:break-all">${esc(invUrl(S.inv.code))}</span><div class="qr" id="qr-inv"></div><button class="btn sm" data-act="f-inv-copy">Copier le lien</button></div>` : ''}
+      ${(F.invitations || []).length ? `<div style="overflow:auto"><table class="t"><tr><th>Pour</th><th>Code</th><th>État</th></tr>${F.invitations.map(i => `<tr><td>${esc(i.pour)}</td><td>${esc(i.code)}</td><td>${i.par ? 'Utilisée par @' + esc(i.par) : 'En attente'}</td></tr>`).join('')}</table></div>` : ''}</div>` : ''}
+  </section>
   <section class="card row wrap" style="gap:12px;align-items:center"><div style="flex:1;min-width:200px"><h2>Auto-évaluations</h2><p class="small muted">Le tableau de bord en direct, à projeter.</p></div><button class="btn gold" data-act="go" data-v="tableau">${ic('chart', 18)} Tableau de bord</button></section>
   ${(F.avis || []).length ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Avis de sortie (anonymes)</h2>${F.avis.map(x => `<div class="note small"><b>${esc(x.cellule || '')}</b>${x.utile ? `<br>Le plus utile : ${esc(x.utile)}` : ''}${x.ameliorer ? `<br>À améliorer : ${esc(x.ameliorer)}` : ''}</div>`).join('')}</section>` : ''}`;
 }
@@ -742,7 +844,7 @@ function sessionCode() { try { return sessionStorage.getItem('k3_fcode') || '' }
 function render() {
   const logged = !!DB.profil;
   if (!logged && !['auth', 'formateur', 'autoeval', 'tableau'].includes(S.v)) S.v = 'auth';
-  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur, autoeval: () => vAutoeval(S.p), tableau: vTableau };
+  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur, autoeval: () => vAutoeval(S.p), tableau: vTableau, travaux: vTravaux, travail: () => vTravail(S.p), corrections: vCorrections };
   $('#app').innerHTML = (views[S.v] || vHome)();
   const bb = $('#backbtn'), atRoot = (logged && S.v === 'home') || (!logged && S.v === 'auth');
   bb.hidden = atRoot; bb.innerHTML = ic('back', 22);
@@ -752,7 +854,7 @@ function render() {
     ${logged ? `<button class="hb" data-act="go" data-v="compte" title="Mon compte" aria-label="Mon compte" style="background:#E0B54A;border-color:#E0B54A;color:#0F2552;font-weight:900;font-family:var(--display)">${esc((DB.profil.prenom || '?').charAt(0).toUpperCase())}</button>
     <button class="hb" data-act="logout" title="Me déconnecter" aria-label="Me déconnecter">${ic('logout', 20)}</button>` : ''}</span>`;
   const nav = $('#nav'); nav.hidden = !logged;
-  if (logged) nav.firstElementChild.innerHTML = (DB.profil.formateur ? [['home', 'home', 'Accueil'], ['jour', 'day', 'Journée'], ['tableau', 'chart', 'Tableau'], ['formateur', 'team', 'Suivi'], ['atelier', 'spark', 'Atelier']]
+  if (logged) nav.firstElementChild.innerHTML = (DB.profil.formateur ? [['home', 'home', 'Accueil'], ['tableau', 'chart', 'Tableau'], ['corrections', 'check', 'Travaux'], ['formateur', 'team', 'Suivi'], ['atelier', 'spark', 'Atelier']]
     : [['home', 'home', 'Accueil'], ['jour', 'day', 'Journée'], ['atelier', 'spark', 'Atelier'], ['parcours', 'route', 'Parcours'], ['cellule', 'team', 'Cellule']])
     .map(([v, i, l]) => `<button class="${S.v === v || (v === 'atelier' && S.v === 'tache') ? 'on' : ''}" data-act="go" data-v="${v}">${ic(i, 22)}<span>${l}</span></button>`).join('');
   afterRender();
@@ -762,14 +864,19 @@ function afterRender() {
   if (S.v === 'evaluations' || S.v === 'tableau') mk('qr-ae', aeUrl('entree'));
   if (S.v === 'tableau' && !S.st && !S.stLoading) loadStats();
   if (S.v === 'compte') mk('qr-app', appUrl());
+  if (S.v === 'formateur' && S.inv) mk('qr-inv', invUrl(S.inv.code));
   if (S.v === 'cellule' && !S.cel && apiOn() && !S.celLoading) loadCellule();
-  if (S.v === 'formateur' && !S.F && !S.busy && !S.err && DB.profil && DB.profil.formateur) loadF('');
+  if ((S.v === 'formateur' || S.v === 'corrections') && !S.F && !S.busy && !S.err && DB.profil && DB.profil.formateur) loadF('');
 }
 const appUrl = () => location.href.split('#')[0].split('?')[0];
+const invUrl = c => appUrl() + '?invite=' + encodeURIComponent(c);
 
 /* ======================= ACTIONS ======================= */
 function aeDraft() { if (!S.ae) return; DB.aeDraft = DB.aeDraft || {}; DB.aeDraft[S.ae.ph] = Object.assign({}, S.ae); save() }
-document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.ae; if (k && S.ae) { S.ae[k] = e.target.value; aeDraft() } });
+document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.ae; if (k && S.ae) { S.ae[k] = e.target.value; aeDraft() }
+  const t = e.target.dataset && e.target.dataset.tr; if (t && S.tr) { S.tr.v[t] = e.target.value; trUpdateScore() } });
+document.addEventListener('change', e => { const t = e.target.dataset && e.target.dataset.tr; if (t && S.tr) { S.tr.v[t] = e.target.value; trUpdateScore() }
+  const c = e.target.dataset && e.target.dataset.trc; if (c !== undefined && S.tr) { S.tr.c[c] = e.target.checked; trUpdateScore() } });
 document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.ae; if (k && S.ae) { S.ae[k] = e.target.value; aeDraft() } });
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && document.body.classList.contains('proj')) { document.body.classList.remove('proj'); render() } });
 document.addEventListener('click', async e => {
@@ -782,6 +889,18 @@ document.addEventListener('click', async e => {
   if (a === 'ae-set') { S.ae[b.dataset.k] = v; aeDraft(); const y = window.scrollY; render(); window.scrollTo(0, y); return }
   if (a === 'ae-note') { S.ae.note = +v; aeDraft(); const y = window.scrollY; render(); window.scrollTo(0, y); return }
   if (a === 'ae-send') return aeSend();
+  if (a === 'tr-open') { S.tr = null; return go('travail', v) }
+  if (a === 'tr-send') return trSend();
+  if (a === 'cr-tab') { S.crA = v; return render() }
+  if (a === 'cr-com') { const t = document.getElementById('cr-' + v), texte = t ? t.value.trim() : '';
+    if (!apiOn()) { toast('Disponible quand le serveur est branché.'); return }
+    b.disabled = true; const r = await api('commenter', Object.assign(auth(), { cible: v, travail: 'trav:' + (S.crA || 'a2'), statut: b.dataset.s, texte }));
+    if (!r.ok) { toast(r.erreur || 'Impossible.'); b.disabled = false; return } toast(b.dataset.s === 'Validé' ? 'Travail validé.' : 'Envoyé : à revoir.'); return loadF('') }
+  if (a === 'f-invite') { const nm = ($('#f-invnom') || {}).value || ''; if (!nm.trim()) { toast('Indiquez le nom de la personne invitée.'); return }
+    const r = await api('inviter', Object.assign(auth(), { pour: nm.trim() })); if (!r.ok) { toast(r.erreur || 'Impossible.'); return }
+    S.inv = { code: r.code, pour: nm.trim() }; return loadF('') }
+  if (a === 'f-inv-copy') { copy(invUrl(S.inv.code)); return }
+  if (a === 'f-retirer') { if (!confirm('Retirer le rôle de formateur à ' + b.dataset.n + ' ?')) return; const r = await api('retirerFormateur', Object.assign(auth(), { cible: v })); toast(r.ok ? 'Rôle retiré.' : (r.erreur || 'Impossible.')); return loadF('') }
   if (a === 'st-refresh') { S.st = null; render(); return loadStats() }
   if (a === 'st-ph') { S.stPh = v; return render() }
   if (a === 'proj') { const on = !document.body.classList.contains('proj'); document.body.classList.toggle('proj', on);
@@ -825,7 +944,7 @@ document.addEventListener('click', async e => {
   if (a === 'theme') { const r = document.documentElement, cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); r.dataset.theme = cur === 'dark' ? 'light' : 'dark'; DB.theme = r.dataset.theme; save(); return }
   if (a === 'f-login') { const c = $('#f-code').value.trim(); try { sessionStorage.setItem('k3_fcode', c) } catch (e2) {} return loadF(c) }
   if (a === 'f-refresh') return loadF(sessionCode());
-  if (a === 'f-upgrade') { const c = ($('#f-upcode') || {}).value || ''; if (!c.trim()) { S.err = 'Entrez le code formateur.'; return render() }
+  if (a === 'f-upgrade') { const c = ($('#f-upcode') || {}).value || ''; if (!c.trim()) { S.err = "Entrez le code d'invitation."; return render() }
     if (!apiOn()) { DB.profil.formateur = true; save(); toast('Compte formateur activé (mode démonstration).'); return go('formateur') }
     S.busy = true; S.err = ''; render(); const r = await api('devenirFormateur', Object.assign(auth(), { codeFormateur: c.trim() })); S.busy = false;
     if (!r.ok) { if (r.session) return sessionLost(); S.err = r.erreur || 'Impossible.'; return render() }
@@ -847,7 +966,7 @@ async function signup() {
   const pin = g('#f-pin').trim();
   const isF = !!($('#f-isf') && $('#f-isf').checked), fcode = g('#f-fcode').trim();
   S.su = Object.assign({}, P, { formateur: isF });
-  if (isF && !fcode) { S.err = 'Entrez le code formateur.'; return render() }
+  if (isF && !fcode) { S.err = "Entrez le code d'invitation."; return render() }
   if (isF) { P.formateur = true; P.codeFormateur = fcode }
   S.su = Object.assign({}, P, { codeFormateur: '' });
   if (!P.prenom || !P.nom || !P.cellule) { S.err = 'Prénom, nom et cellule sont obligatoires.'; return render() }
@@ -865,7 +984,7 @@ async function login() {
   S.busy = true; S.err = ''; render();
   const r = await api('connexion', { pseudo, pin }); S.busy = false;
   if (!r.ok) { S.err = r.erreur || 'Connexion impossible.'; return render() }
-  DB.profil = r.profil; DB.jeton = r.jeton; DB.av = (r.donnees && r.donnees.avancement) || {}; DB.liv = (r.donnees && r.donnees.livrables) || {}; DB.queue = []; save();
+  DB.profil = r.profil; DB.jeton = r.jeton; DB.av = (r.donnees && r.donnees.avancement) || {}; DB.liv = (r.donnees && r.donnees.livrables) || {}; DB.com = (r.donnees && r.donnees.commentaires) || []; DB.queue = []; save();
   toast('Content de vous revoir, ' + r.profil.prenom + ' !'); go('home');
 }
 function logout(silent) { if (!silent && !confirm('Se déconnecter de cet appareil ?')) return; const th = DB.theme; DB = { av: {}, liv: {}, vars: {}, queue: [], theme: th }; save(); S.cel = null; S.F = null; try { sessionStorage.removeItem('k3_fcode') } catch (e) {} go('auth'); toast('Vous êtes déconnecté.') }
@@ -888,11 +1007,12 @@ async function loadF(code) {
 if (DB.theme) document.documentElement.dataset.theme = DB.theme;
 if (!navigator.onLine) $('#offline').hidden = false;
 S.v = DB.profil ? 'home' : 'auth'; S.depth = 0;
-(() => { const q = new URLSearchParams(location.search); if (q.get('eval')) { S.v = 'autoeval'; S.p = q.get('eval') === 'sortie' ? 'sortie' : 'entree' } else if (q.has('tableau')) S.v = 'tableau' })();
+(() => { const q = new URLSearchParams(location.search); if (q.get('eval')) { S.v = 'autoeval'; S.p = q.get('eval') === 'sortie' ? 'sortie' : 'entree' } else if (q.has('tableau')) S.v = 'tableau';
+  if (q.get('invite')) { S.invite = q.get('invite').toUpperCase(); if (DB.profil) S.v = 'compte'; else { S.v = 'auth'; S.auth = 'signup'; S.su = { formateur: true } } } })();
 try { history.replaceState({ v: S.v, p: S.p }, '') } catch (e) {}
 render(); setTimeout(flush, 1200);
 setInterval(() => { if (S.v === 'home' || S.v === 'jour') render() }, 60000);
-setInterval(() => { if (S.v === 'formateur' && S.F) loadF(sessionCode()) }, 45000);
+setInterval(() => { if ((S.v === 'formateur' || S.v === 'corrections') && S.F && !document.querySelector('textarea:focus')) loadF(sessionCode()) }, 45000);
 setInterval(() => { if (S.v === 'tableau' && document.visibilityState !== 'hidden') loadStats() }, 15000);
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   const hadCtl = !!navigator.serviceWorker.controller;
