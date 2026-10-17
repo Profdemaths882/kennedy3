@@ -467,7 +467,8 @@ function statsLocal(rows) {   // même calcul que le serveur, pour le mode démo
   const E = rows.filter(x => x.phase === 'entree'), So = rows.filter(x => x.phase === 'sortie'), ent = {}; E.forEach(x => ent[x.code] = x);
   const P = So.filter(x => ent[x.code]);
   const m10 = x => r2(x.niveaux.reduce((a, c) => a + c, 0) / N);
-  const participants = P.map(x => { const e = m10(ent[x.code]), s = m10(x); return { code: x.code, cellule: x.cellule, e, s, gain: r2(s - e) } }).sort((a, b) => b.gain - a.gain || b.s - a.s);
+  const cap = x => x.niveaux.filter(v => v >= 3).length;
+  const participants = P.map(x => { const e = m10(ent[x.code]), s = m10(x); return { code: x.code, cellule: x.cellule, e, s, gain: r2(s - e), ce: cap(ent[x.code]), cs: cap(x) } }).sort((a, b) => b.gain - a.gain || b.s - a.s);
   return { ok: true, local: true, maj: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), entree: bloc(E), sortie: bloc(So), paires: P.length, participants,
     gain: P.length ? AUTOEVAL.competences.map((c, k) => r2(P.reduce((s, x) => s + x.niveaux[k] - ent[x.code].niveaux[k], 0) / P.length)) : [] };
 }
@@ -479,66 +480,68 @@ async function loadStats() {
   if (S.v === 'tableau') render();
 }
 function vTableau() {
-  const T = S.st;
-  const head = `<div class="row wrap" style="gap:10px"><div style="flex:1;min-width:220px"><p class="eyebrow">Auto-évaluation · formation du 20 octobre</p><h1 style="margin-top:6px">Tableau de bord</h1></div>
+  const T = S.st, proj = document.body.classList.contains('proj');
+  const head = `<div class="row wrap" style="gap:10px"><div style="flex:1;min-width:220px"><p class="eyebrow">Formation du 20 octobre · M. Racine Thiam et Mme Diop Aminata Mbaye</p><h1 style="margin-top:6px">Où en sommes-nous ?</h1></div>
     <button class="btn sm ghost" data-act="st-refresh">${ic('refresh', 16)} Actualiser</button>
-    <button class="btn sm" data-act="proj">${document.body.classList.contains('proj') ? 'Quitter la projection' : 'Projeter'}</button></div>`;
+    <button class="btn sm" data-act="proj">${proj ? 'Quitter la projection' : 'Projeter'}</button></div>`;
   if (!T) return head + `<section class="card"><p class="muted">${S.stErr ? esc(S.stErr) : 'Chargement des résultats…'}</p></section>`;
-  const E = T.entree, O = T.sortie, C = AUTOEVAL.competences, L = AUTOEVAL.niveaux, hasO = O.n > 0;
-  const f1 = x => x === null || x === undefined ? '—' : String(x.toFixed ? x.toFixed(1) : x).replace('.', ',');
-  const pctAuto = b => { const t = b.dist.reduce((s, d) => s + d[0] + d[1] + d[2] + d[3], 0); return t ? Math.round(b.dist.reduce((s, d) => s + d[2] + d[3], 0) / t * 100) : 0 };
-  const mean = a => { const v = a.filter(x => x !== null); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null };
-  const live = `<p class="small muted row wrap" style="gap:12px"><span class="live">En direct</span> Mis à jour ${esc(T.maj || '')} · actualisation toutes les 15 s${T.local ? ' · <b>mode démonstration</b> : seulement les réponses de cet appareil' : ''}</p>`;
-  if (!E.n && !O.n) return head + live + `<section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start"><h2>Pas encore de réponse</h2><p class="muted">Les résultats s'afficheront ici dès la première auto-évaluation.</p><button class="btn gold" data-act="ae-open" data-v="entree">Remplir l'auto-évaluation</button></section>`;
+  const E = T.entree, O = T.sortie, C = AUTOEVAL.competences, hasO = O.n > 0;
+  const live = `<p class="small muted row wrap" style="gap:12px"><span class="live">En direct</span> mis à jour à ${esc(T.maj || '')}${T.local ? ' · <b>mode démonstration</b> : seulement les réponses de cet appareil' : ''}</p>`;
+  if (!E.n && !O.n) return head + live + `<section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start"><h2>Personne n'a encore répondu</h2><p class="muted">Les résultats s'afficheront ici dès la première auto-évaluation.</p><button class="btn gold" data-act="ae-open" data-v="entree">Remplir l'auto-évaluation</button></section>`;
+  // « capable » = seul(e) ou avec un peu d'aide (niveaux 3 et 4)
+  const capK = (b, k) => { const d = b.dist[k], t = d[0] + d[1] + d[2] + d[3]; return t ? Math.round((d[2] + d[3]) / t * 100) : 0 };
+  const capAll = b => { let c = 0, t = 0; b.dist.forEach(d => { c += d[2] + d[3]; t += d[0] + d[1] + d[2] + d[3] }); return t ? Math.round(c / t * 100) : 0 };
+  const capE = C.map((c, k) => capK(E, k)), capO = hasO ? C.map((c, k) => capK(O, k)) : [];
+  const big = (v, l, sub, tone) => `<div class="kpi" style="${tone ? 'border:2px solid ' + tone : ''}"><span class="v">${v}</span><span class="l" style="font-size:15px">${l}</span>${sub ? `<span class="small muted">${sub}</span>` : ''}</div>`;
   const kpis = `<div class="kpis">
-    <div class="kpi"><span class="v">${E.n}</span><span class="l">réponses à l'entrée</span></div>
-    <div class="kpi"><span class="v">${f1(mean(E.moy))}<small style="font-size:.5em"> / 4</small></span><span class="l">niveau moyen à l'entrée</span></div>
-    <div class="kpi"><span class="v">${pctAuto(E)} %</span><span class="l">des réponses : « seul(e) » ou « avec un peu d'aide »</span></div>
-    ${hasO ? `<div class="kpi"><span class="v">${O.n}</span><span class="l">réponses à la sortie</span></div>
-    <div class="kpi"><span class="v">${f1(mean(O.moy))}<small style="font-size:.5em"> / 4</small></span><span class="l">niveau moyen à la sortie</span></div>
-    <div class="kpi"><span class="v">${T.gain.length ? '+' + f1(mean(T.gain)) : '—'}</span><span class="l">progression moyenne (${T.paires} pers. entrée + sortie)</span></div>`
-    : `<div class="kpi"><span class="v">${Object.keys(E.cellules).length}</span><span class="l">cellules représentées</span></div>`}</div>`;
-  const lv = ['var(--l1)', 'var(--l2)', 'var(--l3)', 'var(--l4)'];
-  const showPh = S.stPh === 'sortie' && hasO ? 'sortie' : 'entree', B = showPh === 'sortie' ? O : E;
-  const dist = `<section class="card" style="display:flex;flex-direction:column;gap:10px">
-    <div class="row wrap" style="gap:10px"><h2 style="flex:1">Où en est le groupe, compétence par compétence</h2>
-    ${hasO ? `<div class="tabs"><button class="${showPh === 'entree' ? 'on' : ''}" data-act="st-ph" data-v="entree">Entrée</button><button class="${showPh === 'sortie' ? 'on' : ''}" data-act="st-ph" data-v="sortie">Sortie</button></div>` : ''}</div>
+    ${big(E.n, `prof${E.n > 1 ? 's ont' : ' a'} répondu avant la formation`, Object.keys(E.cellules).length + ' cellule(s) représentée(s)')}
+    ${big(capAll(E) + ' %', 'se sentaient déjà capables', 'avant la formation', 'var(--c-in)')}
+    ${hasO ? big(capAll(O) + ' %', 'se sentent capables maintenant', `+${capAll(O) - capAll(E)} points · ${O.n} réponse(s)`, 'var(--c-out)') : ''}
+    ${hasO && O.note ? big(String(Math.round(O.note * 10) / 10).replace('.', ',') + ' / 5', 'note donnée à la formation', O.nNote + ' avis') : ''}</div>
+    <p class="small muted">« Capable » = je le fais <b>seul(e)</b> ou <b>avec un peu d'aide</b>.</p>`;
+  // phrases simples : points forts et besoins
+  const idx = C.map((c, k) => k), ref = hasO ? capO : capE;
+  const top = idx.slice().sort((a, b) => ref[b] - ref[a]).slice(0, 3), low = idx.slice().sort((a, b) => ref[a] - ref[b]).slice(0, 3);
+  const li = (k, v) => `<li style="margin:6px 0"><b style="color:var(--ink)">${esc(C[k].c)}</b> <span class="muted">· ${v} %</span></li>`;
+  const gains = hasO ? idx.slice().sort((a, b) => (capO[b] - capE[b]) - (capO[a] - capE[a])).slice(0, 3) : [];
+  const words = `<div class="g2f">
+    <section class="card" style="border-top:6px solid var(--green)"><h2>${hasO ? 'Ce que le groupe maîtrise le mieux' : 'Ce que le groupe sait déjà faire'}</h2><ul style="margin:10px 0 0;padding-left:20px">${top.map(k => li(k, ref[k])).join('')}</ul></section>
+    ${hasO ? `<section class="card" style="border-top:6px solid var(--c-out)"><h2>Les plus grands progrès</h2><ul style="margin:10px 0 0;padding-left:20px">${gains.map(k => `<li style="margin:6px 0"><b style="color:var(--ink)">${esc(C[k].c)}</b> <span class="muted">· ${capE[k]} % → ${capO[k]} %</span></li>`).join('')}</ul></section>`
+    : `<section class="card" style="border-top:6px solid var(--gold)"><h2>Ce que nous allons travailler en priorité</h2><ul style="margin:10px 0 0;padding-left:20px">${low.map(k => li(k, ref[k])).join('')}</ul></section>`}</div>`;
+  // une barre par compétence : % de capables, avant (et après)
+  const bar = (v, col, lab) => `<div class="pb"><i style="width:${Math.max(v, 1)}%;background:${col}" title="${lab} : ${v} %"></i><em>${v} %</em></div>`;
+  let lastO = 0;
+  const list = `<section class="card" style="display:flex;flex-direction:column;gap:6px"><h2>Compétence par compétence</h2>
+    <div class="lg"><span><i style="background:var(--c-in)"></i>Avant la formation</span>${hasO ? '<span><i style="background:var(--c-out)"></i>Après la formation</span>' : ''}<span class="muted">% de profs qui se sentent capables</span></div>
+    ${C.map((c, k) => { const h = c.o !== lastO ? `<p class="eyebrow" style="margin-top:12px">Objectif ${c.o} · ${esc(AUTOEVAL.objectifs[c.o - 1])}</p>` : ''; lastO = c.o;
+      return h + `<div class="stk"><span>${esc(c.c)}</span><div class="pair">${bar(capE[k], 'var(--c-in)', 'Avant')}${hasO ? bar(capO[k], 'var(--c-out)', 'Après') : ''}</div></div>` }).join('')}</section>`;
+  // chaque participant : nombre de compétences maîtrisées sur 10
+  const me = DB.ae && DB.ae.code, P = (T.participants || []).slice().sort((a, b) => ((b.cs || 0) - (b.ce || 0)) - ((a.cs || 0) - (a.ce || 0)) || (b.cs || 0) - (a.cs || 0));
+  const parts = hasO && P.length ? `<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>Les progrès de chacun</h2>
+    <p class="small muted">Nombre de compétences sur 10 où chacun se sent capable, avant → après. Chacun se reconnaît à son code.</p>
+    ${P.map(x => { const ce = x.ce !== undefined ? x.ce : Math.round((x.e - 1) / 3 * 10), cs = x.cs !== undefined ? x.cs : Math.round((x.s - 1) / 3 * 10);
+      return `<div class="stk"><span><b style="color:var(--ink)">${esc(x.code)}</b>${x.code === me ? ' <span class="pill gold">moi</span>' : ''} <span class="small muted">${esc(String(x.cellule || '').replace(/ · .*/, ''))}</span></span>
+      <div class="row" style="gap:10px"><div class="db" style="flex:1" title="${esc(x.code)} : ${ce}/10 → ${cs}/10"><i class="db-l" style="left:${Math.min(ce, cs) * 10}%;width:${Math.abs(cs - ce) * 10}%"></i><i class="db-e" style="left:${ce * 10}%"></i><i class="db-s" style="left:${cs * 10}%"></i></div>
+      <b style="color:var(--ink);white-space:nowrap;min-width:92px">${ce}/10 → ${cs}/10</b></div></div>` }).join('')}</section>` : '';
+  // ma progression (sur cet appareil)
+  const mine = DB.ae && DB.ae.entree && DB.ae.entree.niv && DB.ae.sortie && DB.ae.sortie.niv;
+  const perso = mine && !proj ? (() => { const a = DB.ae.entree.niv.filter(v => v >= 3).length, b = DB.ae.sortie.niv.filter(v => v >= 3).length;
+    return `<section class="card" style="border:2px solid var(--gold);display:flex;flex-direction:column;gap:8px"><h2>Ma progression · ${esc(me)}</h2>
+    <p style="font-size:20px;color:var(--ink)"><b>${a}/10</b> compétences avant → <b>${b}/10</b> après</p>
+    ${C.map((c, k) => { const x = DB.ae.entree.niv[k], y = DB.ae.sortie.niv[k]; return `<p class="small" style="margin:2px 0">${y > x ? '⬆️' : y === x ? '➖' : '⬇️'} ${esc(c.c)} : <span class="muted">${esc(AUTOEVAL.niveaux[x - 1])}</span> → <b>${esc(AUTOEVAL.niveaux[y - 1])}</b></p>` }).join('')}
+    <p class="small muted">Visible seulement sur votre téléphone.</p></section>` })() : '';
+  // détail pour les formateurs (repliable)
+  const lv = ['var(--l1)', 'var(--l2)', 'var(--l3)', 'var(--l4)'], L = AUTOEVAL.niveaux;
+  const B = S.stPh === 'sortie' && hasO ? O : E;
+  const detail = `<details class="card"><summary><b>Le détail (pour les formateurs)</b></summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+    ${hasO ? `<div class="tabs"><button class="${B === E ? 'on' : ''}" data-act="st-ph" data-v="entree">Avant</button><button class="${B === O ? 'on' : ''}" data-act="st-ph" data-v="sortie">Après</button></div>` : ''}
     <div class="lg">${L.map((l, i) => `<span><i style="background:${lv[i]}"></i>${esc(l)}</span>`).join('')}</div>
-    ${C.map((c, k) => { const d = B.dist[k], t = d.reduce((a, b) => a + b, 0) || 1;
-      return `<div class="stk"><span>${k + 1}. ${esc(c.c)}</span><div class="seg" role="img" aria-label="${esc(c.c)} : ${d.map((x, i) => L[i] + ' ' + x).join(', ')}">${d.map((x, i) => x ? `<i style="width:${x / t * 100}%;background:${lv[i]}" title="${esc(L[i])} : ${x} (${Math.round(x / t * 100)} %)"></i>` : '').join('')}</div></div>` }).join('')}
-    <p class="small muted">${B.n} réponse(s) · survolez ou touchez une barre pour le détail.</p></section>`;
-  const max4 = v => Math.max(0, Math.min(100, (v || 0) / 4 * 100));
-  const pairRow = (lab, a, b) => `<div class="stk"><span>${esc(lab)}</span><div class="pair">
-      <div class="pb"><i style="width:${max4(a)}%;background:var(--c-in)" title="Entrée : ${f1(a)} / 4"></i><em>${f1(a)}</em></div>
-      ${hasO ? `<div class="pb"><i style="width:${max4(b)}%;background:var(--c-out)" title="Sortie : ${f1(b)} / 4"></i><em>${f1(b)}</em></div>` : ''}</div></div>`;
-  const legPair = `<div class="lg"><span><i style="background:var(--c-in)"></i>Entrée</span>${hasO ? '<span><i style="background:var(--c-out)"></i>Sortie</span>' : ''}<span class="muted">niveau moyen sur 4</span></div>`;
-  const objs = `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Les quatre objectifs de l'année</h2>${legPair}
-    ${AUTOEVAL.objectifs.map((o, i) => pairRow(`${i + 1}. ${o}`, E.obj[i], O.obj[i])).join('')}</section>`;
-  const comps = hasO ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Entrée et sortie, compétence par compétence</h2>${legPair}
-    ${C.map((c, k) => pairRow(`${k + 1}. ${c.c}`, E.moy[k], O.moy[k])).join('')}</section>` : '';
-  const cnt = (obj, title, sub) => { const ks = Object.keys(obj).sort((a, b) => obj[b] - obj[a]), mx = Math.max(1, ...ks.map(k => obj[k]));
-    return `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>${title}</h2>${sub ? `<p class="small muted">${sub}</p>` : ''}
-    ${ks.length ? ks.map(k => `<div class="stk"><span>${esc(k)}</span><div class="pb"><i style="width:${obj[k] / mx * 100}%;background:var(--c-in)" title="${esc(k)} : ${obj[k]}"></i><em>${obj[k]}</em></div></div>`).join('') : '<p class="small muted">—</p>'}</section>` };
-  const ia = cnt(Object.fromEntries(AUTOEVAL.ia.map(k => [k, E.ia[k] || 0])), "Avant la formation, l'IA dans le travail", 'Nombre de réponses');
-  const cel = cnt(E.cellules, 'Participation par cellule', "Auto-évaluations d'entrée reçues");
-  const avis = hasO ? `<div class="g2f">${cnt(Object.fromEntries(AUTOEVAL.projet.map(k => [k, O.projet[k] || 0])), 'Mon projet Claude dès la semaine prochaine ?', '')}
-    <section class="card" style="display:flex;flex-direction:column;gap:6px"><h2>Note globale</h2><p class="kpi" style="border:0;padding:0"><span class="v">${f1(O.note)}<small style="font-size:.5em"> / 5</small></span><span class="l">${O.nNote} avis</span></p></section></div>` : '';
-  const table = `<details class="card"><summary><b>Voir les chiffres en tableau</b></summary><div style="overflow:auto;margin-top:10px"><table class="t">
-    <tr><th>Compétence</th>${L.map(l => `<th>${esc(l)}</th>`).join('')}<th>Moy. entrée</th>${hasO ? '<th>Moy. sortie</th>' : ''}</tr>
-    ${C.map((c, k) => `<tr><td>${esc(c.c)}</td>${E.dist[k].map(x => `<td>${x}</td>`).join('')}<td>${f1(E.moy[k])}</td>${hasO ? `<td>${f1(O.moy[k])}</td>` : ''}</tr>`).join('')}</table></div></details>`;
-  const me = DB.ae && DB.ae.code, mine = DB.ae && DB.ae.entree && DB.ae.entree.niv && DB.ae.sortie && DB.ae.sortie.niv;
-  const perso = mine ? `<section class="card" style="display:flex;flex-direction:column;gap:10px;border:2px solid var(--gold)"><h2>Ma progression · ${esc(me)}</h2>${legPair}
-    ${C.map((c, k) => pairRow(`${k + 1}. ${c.c}`, DB.ae.entree.niv[k], DB.ae.sortie.niv[k])).join('')}
-    <p class="small muted">Visible seulement sur votre appareil.</p></section>` : '';
-  const P = T.participants || [];
-  const parts = hasO && P.length ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>La progression de chaque participant</h2>
-    <div class="lg"><span><i style="background:var(--c-in);border-radius:50%"></i>Entrée</span><span><i style="background:var(--c-out);border-radius:50%"></i>Sortie</span><span class="muted">niveau moyen sur les 10 compétences, de 1 à 4 · code personnel</span></div>
-    ${P.map(x => { const a = (x.e - 1) / 3 * 100, b = (x.s - 1) / 3 * 100, lo = Math.min(a, b), w = Math.abs(b - a);
-      return `<div class="stk"><span><b style="color:var(--ink)">${esc(x.code)}</b>${x.code === me ? ' <span class="pill gold">moi</span>' : ''}<br><span class="small muted">${esc(String(x.cellule || '').replace(/ · .*/, ''))} · ${x.gain >= 0 ? '+' : ''}${f1(x.gain)}</span></span>
-      <div class="db" title="${esc(x.code)} : entrée ${f1(x.e)} → sortie ${f1(x.s)}"><i class="db-l" style="left:${lo}%;width:${w}%"></i><i class="db-e" style="left:${a}%"></i><i class="db-s" style="left:${b}%"></i></div></div>` }).join('')}
-    <div class="stk"><span></span><div class="small muted row" style="justify-content:space-between"><span>1 · ne sait pas faire</span><span>4 · seul(e)</span></div></div></section>` : '';
-  return head + live + kpis + perso + objs + parts + dist + comps + `<div class="g2f">${ia}${cel}</div>` + avis + table +
-    `<section class="card row wrap" style="gap:16px;align-items:center"><div class="qr" id="qr-ae"></div><div style="flex:1;min-width:200px"><h2>Pas encore répondu ?</h2><p class="small muted">Scannez ce code : il ouvre l'auto-évaluation d'entrée, même sans compte.</p></div></section>`;
+    ${C.map((c, k) => { const d = B.dist[k], t = d.reduce((a, b) => a + b, 0) || 1; return `<div class="stk"><span>${esc(c.c)}</span><div class="seg">${d.map((x, i) => x ? `<i style="width:${x / t * 100}%;background:${lv[i]}" title="${esc(L[i])} : ${x}"></i>` : '').join('')}</div></div>` }).join('')}
+    <p class="small muted">Avant la formation, l'IA dans le travail : ${AUTOEVAL.ia.map(k => `${esc(k)} ${E.ia[k] || 0}`).join(' · ')}</p>
+    <p class="small muted">Participation : ${Object.keys(E.cellules).map(k => `${esc(k)} ${E.cellules[k]}`).join(' · ')}</p>
+    ${hasO ? `<p class="small muted">Projet Claude dès la semaine prochaine : ${AUTOEVAL.projet.map(k => `${esc(k)} ${O.projet[k] || 0}`).join(' · ')}</p>` : ''}</div></details>`;
+  const qr = proj ? '' : `<section class="card row wrap" style="gap:16px;align-items:center"><div class="qr" id="qr-ae"></div><div style="flex:1;min-width:200px"><h2>Pas encore répondu ?</h2><p class="small muted">Scannez ce code : il ouvre l'auto-évaluation, même sans compte.</p></div></section>`;
+  return head + live + kpis + words + perso + list + parts + detail + qr;
 }
 
 function vAct(id) {
