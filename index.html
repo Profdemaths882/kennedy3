@@ -345,6 +345,7 @@ function vHome() {
     { v: 'jour', i: 'day', c: '', t: 'La journée du 20 octobre', d: 'Programme, horaires, ce qui se passe maintenant' },
     { v: 'evaluations', i: 'qr', c: 'o', t: 'Auto-évaluations', d: DB.ae && DB.ae.entree ? "Entrée envoyée ✓ · la sortie le 20 octobre" : "À faire avant le 20 octobre : 2 minutes" },
     { v: 'tableau', i: 'chart', c: 'g', t: 'Tableau de bord', d: 'Les résultats du groupe, en direct' },
+    { v: 'claudecompte', i: 'user', c: 'r', t: 'Mon compte Claude', d: 'Le créer avec Gmail : vidéo et étapes' },
     { v: 'compte', i: 'qr', c: '', t: 'Partager Kennedy 3.0', d: 'Message WhatsApp prêt pour les collègues' },
     ...(P.formateur ? [{ v: 'formateur', i: 'team', c: 'o', t: 'Espace formateur', d: 'Suivi en direct de tous les profs' }, { v: 'corrections', i: 'check', c: 'g', t: 'Corriger les travaux', d: 'Notes automatiques, validation, commentaires' }] : [{ v: 'travaux', i: 'check', c: 'g', t: 'Mes travaux', d: 'Déposer, note automatique sur 20' }]),
     { v: 'kit', i: 'bag', c: '', t: 'Mon kit', d: `${KIT.filter(k => isDone('kit:' + k.k)).length} / ${KIT.length} éléments prêts` },
@@ -654,6 +655,18 @@ function vCorrections() {
     : `<section class="card"><p class="muted">Aucun travail déposé pour ${esc(T.act)} pour le moment.</p></section>`);
 }
 
+function vClaudeCompte() {
+  return `<div><p class="eyebrow">Avant le 20 octobre</p><h1 style="margin-top:6px">Créer mon compte Claude avec Gmail</h1>
+  <p class="muted" style="margin-top:6px">5 minutes. Utilisez votre adresse Gmail : c'est la même qui servira pour Google Agenda et Google Forms pendant la formation.</p></div>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Regarder la vidéo</h2>
+    <div class="row wrap" style="gap:8px">${COMPTE_CLAUDE.videos.map(v => `<a class="btn" style="background:#C4302B;color:#fff" href="${esc(v.url)}" target="_blank" rel="noopener">▶ ${esc(v.t)}</a>`).join('')}</div>
+    <p class="small muted">Vidéos YouTube en français. L'écran peut avoir un peu changé depuis : suivez aussi les étapes ci-dessous.</p></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>Les étapes</h2>
+    ${COMPTE_CLAUDE.etapes.map((e, i) => `<div class="meth"><span class="n">${i + 1}</span><div><p>${esc(e)}</p></div></div>`).join('')}
+    <div class="row wrap" style="gap:8px;margin-top:6px"><a class="btn gold" href="https://claude.ai/" target="_blank" rel="noopener">Ouvrir claude.ai</a><a class="btn ghost" href="${esc(COMPTE_CLAUDE.aide)}" target="_blank" rel="noopener">Aide officielle Claude</a></div></section>
+  ${DB.profil ? `<label class="card row" style="gap:10px"><input type="checkbox" data-act="mission" data-v="m-comptes" ${isDone('mission:m-comptes') ? 'checked' : ''} style="width:22px;height:22px"> <b style="color:var(--ink)">Mon compte Claude est créé</b></label>` : ''}`;
+}
+
 function vAct(id) {
   const a = ACTIVITES.find(x => x.id === id); if (!a) return vHome();
   const x = actPct(a);
@@ -669,7 +682,8 @@ function vAct(id) {
       ${(() => { const mine = e.alt && DB.profil && e.alt.cellules.some(c => (DB.profil.cellule || '').startsWith(c));
         const main = e.tache ? `<button class="btn sm ghost" style="align-self:flex-start" data-act="tache" data-v="${e.tache}">${ic('spark', 16)} La demande et les consignes</button>` : '';
         const alt = e.alt ? `<button class="btn sm ${mine ? 'gold' : 'ghost'}" style="align-self:flex-start" data-act="tache" data-v="${e.alt.tache}">${ic('book', 16)} ${esc(e.alt.label)}</button>` : '';
-        return `<div class="row wrap" style="gap:8px">${mine ? alt + main : main + alt}</div>` })()}</div></div>` }).join('')}
+        const gob = e.go ? `<button class="btn sm ghost" style="align-self:flex-start" data-act="go" data-v="${esc(e.go)}">▶ La vidéo et les étapes</button>` : '';
+        return `<div class="row wrap" style="gap:8px">${mine ? alt + main : main + alt}${gob}</div>` })()}</div></div>` }).join('')}
   </section>
   <button class="btn gold wide" data-act="tr-open" data-v="${id}">${ic('check', 18)} Déposer le travail de l'activité ${a.n} (corrigé automatiquement)</button>
   ${x.p === 100 ? `<p class="note"><b>Bravo !</b> Activité terminée.</p>` : ''}`;
@@ -862,7 +876,7 @@ function sessionCode() { try { return sessionStorage.getItem('k3_fcode') || '' }
 function render() {
   const logged = !!DB.profil;
   if (!logged && !['auth', 'formateur'].includes(S.v)) S.v = 'auth';
-  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur, autoeval: () => vAutoeval(S.p), tableau: vTableau, travaux: vTravaux, travail: () => vTravail(S.p), corrections: vCorrections };
+  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur, autoeval: () => vAutoeval(S.p), tableau: vTableau, claudecompte: vClaudeCompte, travaux: vTravaux, travail: () => vTravail(S.p), corrections: vCorrections };
   $('#app').innerHTML = (views[S.v] || vHome)();
   const bb = $('#backbtn'), atRoot = (logged && S.v === 'home') || (!logged && S.v === 'auth');
   bb.hidden = atRoot; bb.innerHTML = ic('back', 22);
@@ -891,7 +905,7 @@ const appUrl = () => location.href.split('#')[0].split('?')[0];
 const invUrl = c => appUrl() + '?invite=' + encodeURIComponent(c);
 const invMsg = (pour, c) => `Bonjour ${pour},\n\nJe vous invite dans l'équipe des formateurs de *Kennedy 3.0*, l'application de la formation IA des enseignants du CEM J.F. Kennedy.\n\n👉 Ouvrez ce lien pour créer votre compte formateur :\n${invUrl(c)}\n\nCode d'invitation : *${c}* (il ne sert qu'une fois).\nChoisissez ensuite votre pseudo et votre code secret à 4 chiffres.\n\n${DB.profil ? DB.profil.prenom + ' ' + DB.profil.nom : 'M. Racine Thiam'} · Kennedy 3.0`;
 const waUrl = txt => 'https://wa.me/?text=' + encodeURIComponent(txt);
-const shareMsg = () => `Bonjour chers collègues 👋\n\nVoici *Kennedy 3.0*, l'application de notre formation « IA et applications éducatives » du *mardi 20 octobre 2026* (09h00 – 16h00, salle multimédia du CEM J.F. Kennedy).\n\n👉 Ouvrez ce lien :\n${appUrl()}?eval=entree\n\n1️⃣ Créez votre compte (pseudo + code secret à 4 chiffres).\n2️⃣ Remplissez l'auto-évaluation d'entrée *avant lundi soir* : 2 minutes, anonyme.\n\nVous y trouverez aussi le programme, le kit à apporter et les activités pas à pas.\n\nÀ mardi !\n${DB.profil ? DB.profil.prenom + ' ' + DB.profil.nom : 'M. Racine Thiam'} · Formateurs : M. Racine Thiam et Mme Diop Aminata Mbaye`;
+const shareMsg = () => `Bonjour chers collègues 👋\n\nVoici *Kennedy 3.0*, l'application de notre formation « IA et applications éducatives » du *mardi 20 octobre 2026* (09h00 – 16h00, salle multimédia du CEM J.F. Kennedy).\n\n👉 Ouvrez ce lien :\n${appUrl()}?eval=entree\n\n1️⃣ Créez votre compte (pseudo + code secret à 4 chiffres).\n2️⃣ Remplissez l'auto-évaluation d'entrée *avant lundi soir* : 2 minutes, anonyme.\n3️⃣ Créez aussi votre compte Claude avec votre Gmail. Vidéo : ${COMPTE_CLAUDE.videos[0].url}\n\nVous y trouverez aussi le programme, le kit à apporter et les activités pas à pas.\n\nÀ mardi !\n${DB.profil ? DB.profil.prenom + ' ' + DB.profil.nom : 'M. Racine Thiam'} · Formateurs : M. Racine Thiam et Mme Diop Aminata Mbaye`;
 const waBtn = (cls) => `<a class="btn ${cls || ''}" style="background:#25D366;color:#0B3B1F" href="${waUrl(shareMsg())}" target="_blank" rel="noopener">📲 Partager sur WhatsApp</a>`;
 
 /* ======================= ACTIONS ======================= */
