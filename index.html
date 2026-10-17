@@ -53,11 +53,18 @@ header.top{position:sticky;top:0;z-index:20;background:var(--navy);color:var(--o
 .top-in{max-width:880px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;background:none;border:0;color:inherit;cursor:pointer;padding:0;text-align:left}
 .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#E0B54A,#C9962B);display:grid;place-items:center;font-family:var(--display);font-weight:900;color:#0F2552;font-size:16px;flex:none}
-.brand b{font-family:var(--display);font-weight:900;font-size:17px;letter-spacing:.02em;display:block}
+.brand b{font-family:var(--display);font-weight:900;font-size:17px;letter-spacing:.02em;display:block;white-space:nowrap}
 .brand b span{color:#E0B54A}
 .brand small{display:block;font-size:12px;opacity:.8}
 .top-in .sp{flex:1}
 .chip{border:1px solid rgba(255,255,255,.35);background:transparent;color:var(--on-navy);border-radius:999px;padding:7px 14px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
+.hb{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);color:var(--on-navy);cursor:pointer;padding:0}
+.hb:hover{background:rgba(255,255,255,.16)} .hb:active{transform:scale(.94)}
+.hb.spin svg{animation:k3spin .8s linear infinite} @keyframes k3spin{to{transform:rotate(360deg)}}
+.tools{display:flex;gap:6px;align-items:center}
+.updbar{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:40;background:#E0B54A;color:#0F2552;font-weight:800;border-radius:14px;padding:10px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100% - 32px)}
+.updbar button{background:#0F2552;color:#fff;border:0;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
+@media (max-width:420px){.brand small{display:none}.brand b{font-size:15px}.top-in{gap:8px;padding:10px 12px}.hb{width:36px;height:36px}}
 .chip.gold{background:#E0B54A;border-color:#E0B54A;color:#0F2552}
 main{max-width:880px;margin:0 auto;padding:20px 16px 110px;display:flex;flex-direction:column;gap:18px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
@@ -109,6 +116,45 @@ main{max-width:880px;margin:0 auto;padding:20px 16px 110px;display:flex;flex-dir
 .checks label{display:flex;align-items:center;gap:6px;border:2px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:14px;background:var(--surface2)}
 .checks input{accent-color:var(--gold)}
 .tabs{display:flex;gap:8px;overflow:auto;padding-bottom:2px}
+/* auto-évaluation */
+:root{--c-in:#2F5FC4;--c-out:#B07A12;--l1:#D9E2F6;--l2:#9FB5E6;--l3:#5C80D2;--l4:#1E3F8A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--c-in:#5A82DC;--c-out:#BB8A22;--l1:#2A3B6B;--l2:#4A63A8;--l3:#7896E0;--l4:#B9CBF5}}
+:root[data-theme="dark"]{--c-in:#5A82DC;--c-out:#BB8A22;--l1:#2A3B6B;--l2:#4A63A8;--l3:#7896E0;--l4:#B9CBF5}
+.comp{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--line)}
+.comp:first-of-type{border-top:0}
+.comp b{color:var(--ink)}
+.lv{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lv button,.ch button{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:9px 6px;font-weight:800;font-size:13px;cursor:pointer;line-height:1.2;min-height:46px}
+.lv button.on{background:var(--navy);border-color:var(--navy);color:var(--on-navy)}
+.ch{display:flex;flex-wrap:wrap;gap:6px}.ch button{padding:9px 14px}.ch button.on{background:var(--navy);border-color:var(--navy);color:var(--on-navy)}
+@media (max-width:520px){.lv{grid-template-columns:repeat(2,1fr)}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.kpi .v{font-family:var(--display);font-weight:900;font-size:34px;color:var(--ink);line-height:1.1}
+.kpi .l{font-size:13px;color:var(--muted);font-weight:700}
+.stk{display:grid;grid-template-columns:minmax(120px,34%) 1fr;gap:10px;align-items:center;padding:5px 0}
+.stk>span{font-size:14px;color:var(--text);line-height:1.25}
+.seg{display:flex;height:22px;gap:2px}
+.seg i{display:block;height:100%;min-width:0}
+.seg i:first-child{border-radius:4px 0 0 4px}.seg i:last-child{border-radius:0 4px 4px 0}.seg i:only-child{border-radius:4px}
+.pair{display:flex;flex-direction:column;gap:3px}
+.pb{display:flex;align-items:center;gap:8px}.pb i{display:block;height:12px;border-radius:0 4px 4px 0;min-width:2px}
+.pb em{font-style:normal;font-size:12.5px;font-weight:800;color:var(--text);min-width:30px}
+.lg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--text)}
+.lg span{display:inline-flex;align-items:center;gap:6px}.lg i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--green)}
+.live::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--green);animation:k3pulse 1.6s ease-in-out infinite}
+@keyframes k3pulse{50%{opacity:.25}}
+body.proj header.top,body.proj nav.bottom,body.proj #offline{display:none!important}
+body.proj main{max-width:1500px;padding:24px 32px 40px}
+body.proj .stk>span{font-size:17px}body.proj .seg{height:28px}body.proj .kpi .v{font-size:46px}
+.projx{position:fixed;right:16px;top:12px;z-index:50}
+.db{position:relative;height:22px;margin:0 8px}.db::before{content:"";position:absolute;left:0;right:0;top:10px;height:2px;background:var(--line)}
+.db i{position:absolute;top:50%;transform:translate(-50%,-50%)}
+.db .db-l{height:4px;transform:translateY(-50%);background:var(--line);border-radius:2px;background:linear-gradient(90deg,var(--c-in),var(--c-out))}
+.db .db-e,.db .db-s{width:14px;height:14px;border-radius:50%;border:2px solid var(--surface)}
+.db .db-e{background:var(--c-in)}.db .db-s{background:var(--c-out)}
+.g2f{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
 .tabs button{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:800;cursor:pointer;white-space:nowrap;color:var(--ink)}
 .tabs button.on{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
 .err{color:var(--red);font-weight:700}
@@ -119,6 +165,7 @@ nav.bottom>div{max-width:880px;margin:0 auto;display:grid;grid-template-columns:
 nav.bottom button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer;padding:6px 2px;border-radius:12px}
 nav.bottom button.on{color:var(--ink);background:var(--blue-soft)}
 .offline{background:var(--red-soft);color:var(--red);text-align:center;font-weight:700;font-size:13px;padding:4px}
+.ex{width:100%;height:auto;display:block;border-radius:14px;border:1px solid var(--line)}
 .shot{width:100%;max-width:220px;border-radius:22px;border:8px solid #0F2552;box-shadow:var(--shadow);display:block}
 .meth{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start}
 .meth .n{width:44px;height:44px;border-radius:50%;background:var(--navy);color:#E0B54A;display:grid;place-items:center;font-family:var(--display);font-weight:900}
@@ -134,6 +181,7 @@ table.t th{font-family:var(--display);font-size:12px;letter-spacing:.06em;text-t
 <body>
 <div class="flag"></div>
 <header class="top"><div class="top-in">
+  <button class="hb" id="backbtn" data-act="back" title="Retour" aria-label="Retour" hidden></button>
   <button class="brand" data-act="go" data-v="home"><span class="logo">K3</span><span><b>KENNEDY <span>3.0</span></b><small>Formation IA des enseignants</small></span></button>
   <span class="sp"></span>
   <span id="topright"></span>
@@ -147,7 +195,7 @@ table.t th{font-family:var(--display);font-size:12px;letter-spacing:.06em;text-t
    KENNEDY 3.0 · CEM J.F. Kennedy · ProfDeMaths 2.0
    Adresse du serveur Google Apps Script (Déployer › Application Web › URL …/exec)
    ====================================================================== */
-const API_URL = "COLLER_ICI_L_URL_DU_SCRIPT";
+const API_URL = "https://script.google.com/macros/s/AKfycbx0oGdCOGJYKTnt_oLmIdFp3yO5rt2hQ5rm-hNS3tMgOd01pRHZGYiMeN31ohdVmIj7/exec";
 const apiOn = () => /^https:\/\/script\.google\.com\//.test(API_URL);
 
 /* ---------- état local ---------- */
@@ -180,7 +228,10 @@ const I = {
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
   qr: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/>',
   layers: '<path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/>',
-  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'
+  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
+  logout: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h11"/>'
 };
 const ic = (n, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
 
@@ -221,7 +272,26 @@ function globalPct() {
 }
 
 /* ---------- navigation ---------- */
-function go(v, p) { S.v = v; S.p = p || null; S.err = ''; render(); window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' }) }
+function go(v, p, noPush) {
+  if (!noPush && (S.v !== v || S.p !== (p || null))) { try { history.pushState({ v, p: p || null }, ''); S.depth = (S.depth || 0) + 1 } catch (e) {} }
+  S.v = v; S.p = p || null; S.err = ''; render(); window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+}
+function back() { if (history.state && history.state.v && history.length > 1 && S.depth > 0) history.back(); else go(DB.profil ? 'home' : 'auth') }
+window.addEventListener('popstate', e => {
+  const st = e.state; S.depth = Math.max(0, (S.depth || 0) - 1);
+  if (st && st.v) { if (!DB.profil && !['auth', 'formateur', 'autoeval', 'tableau'].includes(st.v)) return go('auth', null, true); go(st.v, st.p, true) }
+  else go(DB.profil ? 'home' : 'auth', null, true);
+});
+async function actualiser(btn) {
+  if (btn) btn.classList.add('spin');
+  try {
+    await flush();
+    S.cel = null; S.celErr = '';
+    if (S.v === 'formateur' && S.F && sessionCode()) await loadF(sessionCode());
+    try { if ('serviceWorker' in navigator) { const r = await navigator.serviceWorker.getRegistration(); if (r) await r.update() } } catch (e) {}
+    render(); toast(navigator.onLine === false ? 'Hors connexion : affichage des données de cet appareil.' : 'Actualisé.');
+  } finally { const b = document.getElementById('refbtn'); if (b) b.classList.remove('spin') }
+}
 function route(dest) { if (!dest) return; if (dest.startsWith('act:')) return go('act', dest.slice(4)); go(dest) }
 
 /* ======================= VUES ======================= */
@@ -258,7 +328,8 @@ function vHome() {
   const P = DB.profil, g = globalPct(), now = nowItem();
   const tiles = [
     { v: 'jour', i: 'day', c: '', t: 'La journée du 20 octobre', d: 'Programme, horaires, ce qui se passe maintenant' },
-    { v: 'evaluations', i: 'qr', c: 'o', t: 'Auto-évaluations', d: "Entrée et sortie : mesurer vos progrès" },
+    { v: 'evaluations', i: 'qr', c: 'o', t: 'Auto-évaluations', d: DB.ae && DB.ae.entree ? "Entrée envoyée ✓ · la sortie le 20 octobre" : "À faire avant le 20 octobre : 2 minutes" },
+    { v: 'tableau', i: 'chart', c: 'g', t: 'Tableau de bord', d: 'Les résultats du groupe, en direct' },
     { v: 'kit', i: 'bag', c: '', t: 'Mon kit', d: `${KIT.filter(k => isDone('kit:' + k.k)).length} / ${KIT.length} éléments prêts` },
     { v: 'atelier', i: 'spark', c: 'o', t: "L'atelier Claude", d: 'La bonne demande et les consignes pour chaque tâche' },
     { v: 'methode', i: 'layers', c: 'g', t: 'La méthode ProfDeMaths', d: 'Le traitement des connaissances, étape par étape' },
@@ -313,16 +384,161 @@ function vKit() {
 }
 
 function vEvaluations() {
-  return `<div><p class="eyebrow">Mesurer vos progrès</p><h1 style="margin-top:6px">Auto-évaluations</h1>
-  <p class="muted" style="margin-top:6px">Même grille à l'entrée et à la sortie. Votre code : <b>2 premières lettres du prénom + jour de naissance</b> (ex. AW14), le même les deux fois. C'est anonyme.</p></div>
-  <div class="grid2">
-  ${[['entree', "Auto-évaluation d'entrée", "À l'accueil, avant de commencer", 'm-entree'], ['sortie', 'Évaluation de sortie', 'En fin de journée, puis votre avis', 'm-sortie']].map(([k, t, d, m]) => `
-    <section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+  const done = ph => DB.ae && DB.ae[ph];
+  const card = (ph, t, d, m) => `<section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start">
       <h2>${t}</h2><p class="small muted">${d}</p>
-      <div class="qr" id="qr-${k}"></div>
-      <a class="btn gold wide" href="${FORMS[k]}" target="_blank" rel="noopener" data-act="mission-auto" data-v="${m}">Ouvrir le formulaire</a>
-      <label class="small row" style="gap:8px"><input type="checkbox" data-act="mission" data-v="${m}" ${isDone('mission:' + m) ? 'checked' : ''}> C'est fait</label>
-    </section>`).join('')}</div>`;
+      ${done(ph) ? `<span class="pill ok">✓ Envoyée le ${esc(done(ph).date)}</span>` : ''}
+      <button class="btn gold wide" data-act="ae-open" data-v="${ph}">${done(ph) ? 'Modifier mes réponses' : 'Remplir maintenant (2 min)'}</button></section>`;
+  return `<div><p class="eyebrow">Mesurer vos progrès</p><h1 style="margin-top:6px">Auto-évaluations</h1>
+  <p class="muted" style="margin-top:6px">Même grille à l'entrée et à la sortie, directement dans Kennedy 3.0. Votre code : <b>2 premières lettres du prénom + jour de naissance</b> (ex. AW14), le même les deux fois. C'est anonyme : le tableau de bord ne montre que des résultats de groupe.</p></div>
+  <div class="grid2">${card('entree', "Auto-évaluation d'entrée", "À faire avant le mardi 20 octobre (sinon à l'accueil).")}${card('sortie', 'Évaluation de sortie', 'En fin de journée : la même grille, puis votre avis.')}</div>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start"><h2>Tableau de bord en direct</h2>
+    <p class="small muted">Les résultats du groupe, mis à jour toutes les 15 secondes : à projeter pendant la formation.</p>
+    <button class="btn wide" data-act="go" data-v="tableau">${ic('chart', 18)} Ouvrir le tableau de bord</button></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center"><h2>Faire scanner l'auto-évaluation</h2>
+    <div class="qr" id="qr-ae"></div><p class="small muted">Ce code ouvre directement l'auto-évaluation d'entrée, même sans compte.</p></section>`;
+}
+
+const aeUrl = ph => appUrl() + '?eval=' + ph;
+function aeState(ph) {
+  if (!S.ae || S.ae.ph !== ph) {
+    const prev = (DB.aeDraft && DB.aeDraft[ph]) || {};
+    S.ae = Object.assign({ ph, code: (DB.ae && DB.ae.code) || '', cellule: (DB.profil && DB.profil.cellule) || '', ia: '', niv: AUTOEVAL.competences.map(() => 0), note: 0, projet: '', utile: '', ameliorer: '' }, prev, { ph });
+  }
+  return S.ae;
+}
+function vAutoeval(ph) {
+  ph = ph === 'sortie' ? 'sortie' : 'entree';
+  const A = aeState(ph), n = A.niv.filter(Boolean).length, N = AUTOEVAL.competences.length;
+  const chips = (key, opts) => `<div class="ch">${opts.map(o => `<button class="${A[key] === o ? 'on' : ''}" data-act="ae-set" data-k="${key}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  let lastO = 0;
+  return `<section class="hero"><p class="eyebrow">${ph === 'entree' ? "Avant la formation" : 'Fin de la formation'}</p>
+    <h1 style="margin:6px 0 8px">${ph === 'entree' ? "Auto-évaluation d'entrée" : 'Évaluation de sortie'}</h1>
+    <p>${ph === 'entree' ? "Où en êtes-vous ? Ce n'est pas une note : répondez honnêtement. 2 minutes, anonyme." : "La même grille qu'à l'entrée, pour mesurer vos progrès, puis votre avis."}</p></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px">
+    <div class="grid2" style="gap:12px">
+      <label class="form">Mon code personnel<input data-ae="code" value="${esc(A.code)}" placeholder="ex. AW14" autocomplete="off" autocapitalize="characters" maxlength="4"></label>
+      <label class="form">Ma cellule<select data-ae="cellule"><option value="">Choisir…</option>${CELLULES.map(c => `<option ${A.cellule === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
+    </div>
+    <p class="small muted">Code : 2 premières lettres du prénom + jour de naissance. Gardez le même à l'entrée et à la sortie.</p>
+    ${ph === 'entree' ? `<b style="color:var(--ink)">Avant aujourd'hui, utilisiez-vous l'IA dans votre travail ?</b>${chips('ia', AUTOEVAL.ia)}` : ''}
+  </section>
+  <section class="card" style="display:flex;flex-direction:column;gap:0">
+    <div class="row" style="margin-bottom:6px"><h2 style="flex:1">${ph === 'entree' ? "Aujourd'hui, je sais…" : 'Maintenant, je sais…'}</h2><span class="pill ${n === N ? 'ok' : ''}">${n} / ${N}</span></div>
+    ${AUTOEVAL.competences.map((c, k) => { const head = c.o !== lastO ? `<p class="eyebrow" style="margin-top:14px">Objectif ${c.o} · ${esc(AUTOEVAL.objectifs[c.o - 1])}</p>` : ''; lastO = c.o;
+      return head + `<div class="comp"><b>${k + 1}. ${esc(c.t)}</b><div class="lv">${AUTOEVAL.niveaux.map((l, i) => `<button class="${A.niv[k] === i + 1 ? 'on' : ''}" data-act="ae-niv" data-k="${k}" data-v="${i + 1}">${esc(l)}</button>`).join('')}</div></div>` }).join('')}
+  </section>
+  ${ph === 'sortie' ? `<section class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Votre avis</h2>
+    <b style="color:var(--ink)">Note globale de la formation</b><div class="ch">${[1, 2, 3, 4, 5].map(x => `<button class="${A.note === x ? 'on' : ''}" data-act="ae-note" data-v="${x}">${x}</button>`).join('')}</div>
+    <p class="small muted">1 = très insatisfait · 5 = très satisfait</p>
+    <b style="color:var(--ink)">Allez-vous utiliser votre projet Claude dès la semaine prochaine ?</b>${chips('projet', AUTOEVAL.projet)}
+    <label class="form">Ce qui vous a été le plus utile<textarea data-ae="utile" rows="2">${esc(A.utile)}</textarea></label>
+    <label class="form">Ce qu'il faut améliorer<textarea data-ae="ameliorer" rows="2">${esc(A.ameliorer)}</textarea></label></section>` : ''}
+  ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
+  <button class="btn gold wide" data-act="ae-send" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Envoi…' : 'Envoyer mes réponses'}</button>`;
+}
+async function aeSend() {
+  const A = S.ae; A.code = String(A.code || '').trim().toUpperCase().replace(/\s+/g, '');
+  if (!/^[A-ZÀ-Ÿ]{2}\d{1,2}$/.test(A.code)) { S.err = 'Code personnel : 2 lettres du prénom + jour de naissance (ex. AW14).'; return render() }
+  if (!A.cellule) { S.err = 'Choisissez votre cellule.'; return render() }
+  if (A.ph === 'entree' && !A.ia) { S.err = "Dites si vous utilisiez déjà l'IA."; return render() }
+  if (A.niv.some(x => !x)) { S.err = 'Répondez aux ' + A.niv.length + ' compétences (' + A.niv.filter(x => !x).length + ' manquante(s)).'; return render() }
+  if (A.ph === 'sortie' && !A.note) { S.err = 'Donnez une note globale.'; return render() }
+  const body = { code: A.code, cellule: A.cellule, phase: A.ph, ia: A.ia, niveaux: A.niv, note: A.note, projet: A.projet, utile: A.utile, ameliorer: A.ameliorer };
+  S.busy = true; S.err = ''; render();
+  const r = await api('autoeval', body); S.busy = false;
+  if (!r.ok && !r.local) { S.err = r.erreur || 'Envoi impossible.'; return render() }
+  if (r.local) { DB.aeLocal = (DB.aeLocal || []).filter(x => !(x.code === A.code && x.phase === A.ph)); DB.aeLocal.push(body) }
+  DB.ae = DB.ae || {}; DB.ae.code = A.code; DB.ae[A.ph] = { date: new Date().toLocaleDateString('fr-FR'), niv: A.niv.slice() };
+  if (DB.aeDraft) delete DB.aeDraft[A.ph];
+  save();
+  if (DB.profil) setAv('mission:m-' + A.ph, new Date().toISOString());
+  S.ae = null; toast('Merci ! Vos réponses sont enregistrées.'); go('tableau');
+}
+
+/* ---------- tableau de bord (agrégats anonymes) ---------- */
+function statsLocal(rows) {   // même calcul que le serveur, pour le mode démonstration
+  const N = AUTOEVAL.competences.length, r2 = x => Math.round(x * 100) / 100;
+  const bloc = R => { const b = { n: R.length, dist: [], moy: [], obj: [], cellules: {}, ia: {}, projet: {}, note: null, nNote: 0 };
+    for (let k = 0; k < N; k++) { const d = [0, 0, 0, 0]; let s = 0; R.forEach(x => { d[x.niveaux[k] - 1]++; s += x.niveaux[k] }); b.dist.push(d); b.moy.push(R.length ? r2(s / R.length) : null) }
+    [1, 2, 3, 4].forEach(o => { const m = AUTOEVAL.competences.map((c, k) => c.o === o ? b.moy[k] : null).filter(v => v !== null); b.obj.push(m.length ? r2(m.reduce((a, c) => a + c, 0) / m.length) : null) });
+    R.forEach(x => { b.cellules[x.cellule] = (b.cellules[x.cellule] || 0) + 1; if (x.ia) b.ia[x.ia] = (b.ia[x.ia] || 0) + 1; if (x.projet) b.projet[x.projet] = (b.projet[x.projet] || 0) + 1 });
+    const notes = R.map(x => +x.note).filter(v => v >= 1); b.nNote = notes.length; b.note = notes.length ? r2(notes.reduce((a, c) => a + c, 0) / notes.length) : null; return b };
+  const E = rows.filter(x => x.phase === 'entree'), So = rows.filter(x => x.phase === 'sortie'), ent = {}; E.forEach(x => ent[x.code] = x);
+  const P = So.filter(x => ent[x.code]);
+  const m10 = x => r2(x.niveaux.reduce((a, c) => a + c, 0) / N);
+  const participants = P.map(x => { const e = m10(ent[x.code]), s = m10(x); return { code: x.code, cellule: x.cellule, e, s, gain: r2(s - e) } }).sort((a, b) => b.gain - a.gain || b.s - a.s);
+  return { ok: true, local: true, maj: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), entree: bloc(E), sortie: bloc(So), paires: P.length, participants,
+    gain: P.length ? AUTOEVAL.competences.map((c, k) => r2(P.reduce((s, x) => s + x.niveaux[k] - ent[x.code].niveaux[k], 0) / P.length)) : [] };
+}
+async function loadStats() {
+  if (S.stLoading) return; S.stLoading = true;
+  const r = apiOn() ? await api('stats') : statsLocal(DB.aeLocal || []);
+  S.stLoading = false;
+  if (r.ok) { S.st = r; S.stErr = '' } else S.stErr = r.erreur || 'Chargement impossible.';
+  if (S.v === 'tableau') render();
+}
+function vTableau() {
+  const T = S.st;
+  const head = `<div class="row wrap" style="gap:10px"><div style="flex:1;min-width:220px"><p class="eyebrow">Auto-évaluation · formation du 20 octobre</p><h1 style="margin-top:6px">Tableau de bord</h1></div>
+    <button class="btn sm ghost" data-act="st-refresh">${ic('refresh', 16)} Actualiser</button>
+    <button class="btn sm" data-act="proj">${document.body.classList.contains('proj') ? 'Quitter la projection' : 'Projeter'}</button></div>`;
+  if (!T) return head + `<section class="card"><p class="muted">${S.stErr ? esc(S.stErr) : 'Chargement des résultats…'}</p></section>`;
+  const E = T.entree, O = T.sortie, C = AUTOEVAL.competences, L = AUTOEVAL.niveaux, hasO = O.n > 0;
+  const f1 = x => x === null || x === undefined ? '—' : String(x.toFixed ? x.toFixed(1) : x).replace('.', ',');
+  const pctAuto = b => { const t = b.dist.reduce((s, d) => s + d[0] + d[1] + d[2] + d[3], 0); return t ? Math.round(b.dist.reduce((s, d) => s + d[2] + d[3], 0) / t * 100) : 0 };
+  const mean = a => { const v = a.filter(x => x !== null); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null };
+  const live = `<p class="small muted row wrap" style="gap:12px"><span class="live">En direct</span> Mis à jour ${esc(T.maj || '')} · actualisation toutes les 15 s${T.local ? ' · <b>mode démonstration</b> : seulement les réponses de cet appareil' : ''}</p>`;
+  if (!E.n && !O.n) return head + live + `<section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start"><h2>Pas encore de réponse</h2><p class="muted">Les résultats s'afficheront ici dès la première auto-évaluation.</p><button class="btn gold" data-act="ae-open" data-v="entree">Remplir l'auto-évaluation</button></section>`;
+  const kpis = `<div class="kpis">
+    <div class="kpi"><span class="v">${E.n}</span><span class="l">réponses à l'entrée</span></div>
+    <div class="kpi"><span class="v">${f1(mean(E.moy))}<small style="font-size:.5em"> / 4</small></span><span class="l">niveau moyen à l'entrée</span></div>
+    <div class="kpi"><span class="v">${pctAuto(E)} %</span><span class="l">des réponses : « seul(e) » ou « avec un peu d'aide »</span></div>
+    ${hasO ? `<div class="kpi"><span class="v">${O.n}</span><span class="l">réponses à la sortie</span></div>
+    <div class="kpi"><span class="v">${f1(mean(O.moy))}<small style="font-size:.5em"> / 4</small></span><span class="l">niveau moyen à la sortie</span></div>
+    <div class="kpi"><span class="v">${T.gain.length ? '+' + f1(mean(T.gain)) : '—'}</span><span class="l">progression moyenne (${T.paires} pers. entrée + sortie)</span></div>`
+    : `<div class="kpi"><span class="v">${Object.keys(E.cellules).length}</span><span class="l">cellules représentées</span></div>`}</div>`;
+  const lv = ['var(--l1)', 'var(--l2)', 'var(--l3)', 'var(--l4)'];
+  const showPh = S.stPh === 'sortie' && hasO ? 'sortie' : 'entree', B = showPh === 'sortie' ? O : E;
+  const dist = `<section class="card" style="display:flex;flex-direction:column;gap:10px">
+    <div class="row wrap" style="gap:10px"><h2 style="flex:1">Où en est le groupe, compétence par compétence</h2>
+    ${hasO ? `<div class="tabs"><button class="${showPh === 'entree' ? 'on' : ''}" data-act="st-ph" data-v="entree">Entrée</button><button class="${showPh === 'sortie' ? 'on' : ''}" data-act="st-ph" data-v="sortie">Sortie</button></div>` : ''}</div>
+    <div class="lg">${L.map((l, i) => `<span><i style="background:${lv[i]}"></i>${esc(l)}</span>`).join('')}</div>
+    ${C.map((c, k) => { const d = B.dist[k], t = d.reduce((a, b) => a + b, 0) || 1;
+      return `<div class="stk"><span>${k + 1}. ${esc(c.c)}</span><div class="seg" role="img" aria-label="${esc(c.c)} : ${d.map((x, i) => L[i] + ' ' + x).join(', ')}">${d.map((x, i) => x ? `<i style="width:${x / t * 100}%;background:${lv[i]}" title="${esc(L[i])} : ${x} (${Math.round(x / t * 100)} %)"></i>` : '').join('')}</div></div>` }).join('')}
+    <p class="small muted">${B.n} réponse(s) · survolez ou touchez une barre pour le détail.</p></section>`;
+  const max4 = v => Math.max(0, Math.min(100, (v || 0) / 4 * 100));
+  const pairRow = (lab, a, b) => `<div class="stk"><span>${esc(lab)}</span><div class="pair">
+      <div class="pb"><i style="width:${max4(a)}%;background:var(--c-in)" title="Entrée : ${f1(a)} / 4"></i><em>${f1(a)}</em></div>
+      ${hasO ? `<div class="pb"><i style="width:${max4(b)}%;background:var(--c-out)" title="Sortie : ${f1(b)} / 4"></i><em>${f1(b)}</em></div>` : ''}</div></div>`;
+  const legPair = `<div class="lg"><span><i style="background:var(--c-in)"></i>Entrée</span>${hasO ? '<span><i style="background:var(--c-out)"></i>Sortie</span>' : ''}<span class="muted">niveau moyen sur 4</span></div>`;
+  const objs = `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Les quatre objectifs de l'année</h2>${legPair}
+    ${AUTOEVAL.objectifs.map((o, i) => pairRow(`${i + 1}. ${o}`, E.obj[i], O.obj[i])).join('')}</section>`;
+  const comps = hasO ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Entrée et sortie, compétence par compétence</h2>${legPair}
+    ${C.map((c, k) => pairRow(`${k + 1}. ${c.c}`, E.moy[k], O.moy[k])).join('')}</section>` : '';
+  const cnt = (obj, title, sub) => { const ks = Object.keys(obj).sort((a, b) => obj[b] - obj[a]), mx = Math.max(1, ...ks.map(k => obj[k]));
+    return `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>${title}</h2>${sub ? `<p class="small muted">${sub}</p>` : ''}
+    ${ks.length ? ks.map(k => `<div class="stk"><span>${esc(k)}</span><div class="pb"><i style="width:${obj[k] / mx * 100}%;background:var(--c-in)" title="${esc(k)} : ${obj[k]}"></i><em>${obj[k]}</em></div></div>`).join('') : '<p class="small muted">—</p>'}</section>` };
+  const ia = cnt(Object.fromEntries(AUTOEVAL.ia.map(k => [k, E.ia[k] || 0])), "Avant la formation, l'IA dans le travail", 'Nombre de réponses');
+  const cel = cnt(E.cellules, 'Participation par cellule', "Auto-évaluations d'entrée reçues");
+  const avis = hasO ? `<div class="g2f">${cnt(Object.fromEntries(AUTOEVAL.projet.map(k => [k, O.projet[k] || 0])), 'Mon projet Claude dès la semaine prochaine ?', '')}
+    <section class="card" style="display:flex;flex-direction:column;gap:6px"><h2>Note globale</h2><p class="kpi" style="border:0;padding:0"><span class="v">${f1(O.note)}<small style="font-size:.5em"> / 5</small></span><span class="l">${O.nNote} avis</span></p></section></div>` : '';
+  const table = `<details class="card"><summary><b>Voir les chiffres en tableau</b></summary><div style="overflow:auto;margin-top:10px"><table class="t">
+    <tr><th>Compétence</th>${L.map(l => `<th>${esc(l)}</th>`).join('')}<th>Moy. entrée</th>${hasO ? '<th>Moy. sortie</th>' : ''}</tr>
+    ${C.map((c, k) => `<tr><td>${esc(c.c)}</td>${E.dist[k].map(x => `<td>${x}</td>`).join('')}<td>${f1(E.moy[k])}</td>${hasO ? `<td>${f1(O.moy[k])}</td>` : ''}</tr>`).join('')}</table></div></details>`;
+  const me = DB.ae && DB.ae.code, mine = DB.ae && DB.ae.entree && DB.ae.entree.niv && DB.ae.sortie && DB.ae.sortie.niv;
+  const perso = mine ? `<section class="card" style="display:flex;flex-direction:column;gap:10px;border:2px solid var(--gold)"><h2>Ma progression · ${esc(me)}</h2>${legPair}
+    ${C.map((c, k) => pairRow(`${k + 1}. ${c.c}`, DB.ae.entree.niv[k], DB.ae.sortie.niv[k])).join('')}
+    <p class="small muted">Visible seulement sur votre appareil.</p></section>` : '';
+  const P = T.participants || [];
+  const parts = hasO && P.length ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>La progression de chaque participant</h2>
+    <div class="lg"><span><i style="background:var(--c-in);border-radius:50%"></i>Entrée</span><span><i style="background:var(--c-out);border-radius:50%"></i>Sortie</span><span class="muted">niveau moyen sur les 10 compétences, de 1 à 4 · code personnel</span></div>
+    ${P.map(x => { const a = (x.e - 1) / 3 * 100, b = (x.s - 1) / 3 * 100, lo = Math.min(a, b), w = Math.abs(b - a);
+      return `<div class="stk"><span><b style="color:var(--ink)">${esc(x.code)}</b>${x.code === me ? ' <span class="pill gold">moi</span>' : ''}<br><span class="small muted">${esc(String(x.cellule || '').replace(/ · .*/, ''))} · ${x.gain >= 0 ? '+' : ''}${f1(x.gain)}</span></span>
+      <div class="db" title="${esc(x.code)} : entrée ${f1(x.e)} → sortie ${f1(x.s)}"><i class="db-l" style="left:${lo}%;width:${w}%"></i><i class="db-e" style="left:${a}%"></i><i class="db-s" style="left:${b}%"></i></div></div>` }).join('')}
+    <div class="stk"><span></span><div class="small muted row" style="justify-content:space-between"><span>1 · ne sait pas faire</span><span>4 · seul(e)</span></div></div></section>` : '';
+  return head + live + kpis + perso + objs + parts + dist + comps + `<div class="g2f">${ia}${cel}</div>` + avis + table +
+    `<section class="card row wrap" style="gap:16px;align-items:center"><div class="qr" id="qr-ae"></div><div style="flex:1;min-width:200px"><h2>Pas encore répondu ?</h2><p class="small muted">Scannez ce code : il ouvre l'auto-évaluation d'entrée, même sans compte.</p></div></section>`;
 }
 
 function vAct(id) {
@@ -337,7 +553,10 @@ function vAct(id) {
       <button class="ck" data-act="step" data-a="${a.id}" data-i="${i}" aria-label="Étape faite">${d ? '✓' : i + 1}</button>
       <div style="display:flex;flex-direction:column;gap:6px"><div class="row wrap" style="gap:8px"><b style="color:var(--ink)">${esc(e.t)}</b><span class="pill">${e.m} min</span></div>
       <p class="small">${esc(e.d)}</p>
-      ${e.tache ? `<button class="btn sm ghost" style="align-self:flex-start" data-act="tache" data-v="${e.tache}">${ic('spark', 16)} La demande et les consignes</button>` : ''}</div></div>` }).join('')}
+      ${(() => { const mine = e.alt && DB.profil && e.alt.cellules.some(c => (DB.profil.cellule || '').startsWith(c));
+        const main = e.tache ? `<button class="btn sm ghost" style="align-self:flex-start" data-act="tache" data-v="${e.tache}">${ic('spark', 16)} La demande et les consignes</button>` : '';
+        const alt = e.alt ? `<button class="btn sm ${mine ? 'gold' : 'ghost'}" style="align-self:flex-start" data-act="tache" data-v="${e.alt.tache}">${ic('book', 16)} ${esc(e.alt.label)}</button>` : '';
+        return `<div class="row wrap" style="gap:8px">${mine ? alt + main : main + alt}</div>` })()}</div></div>` }).join('')}
   </section>
   ${id === 'a2' || id === 'a3' ? `<button class="btn gold" data-act="go" data-v="cellule">Déposer mes livrables dans « Ma cellule »</button>` : ''}
   ${x.p === 100 ? `<p class="note"><b>Bravo !</b> Activité terminée.</p>` : ''}`;
@@ -370,13 +589,15 @@ function vTache(id) {
   return `<button class="btn ghost sm" style="align-self:flex-start" data-act="go" data-v="atelier">← L'atelier Claude</button>
   <div><p class="eyebrow">${esc((GROUPES.find(g => g.id === t.g) || {}).t || '')}</p><h1 style="margin-top:6px">${esc(t.t)}</h1><p class="muted" style="margin-top:6px">${esc(t.d)}</p></div>
   <p class="note small"><b>Il faut :</b> ${esc(t.besoin)}</p>
+  ${t.anim ? `<p class="note small" style="border-left-color:var(--blue)"><b>Atelier animé par</b> ${esc(t.anim)}</p>` : ''}
+  ${t.exemple ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>L'exemple</h2><a href="img/${t.exemple.img}.jpg" target="_blank" rel="noopener"><img class="ex" src="img/${t.exemple.img}.jpg" alt="${esc(t.exemple.legende)}" loading="lazy"></a><p class="small muted">${esc(t.exemple.legende)} Touchez l'image pour l'agrandir.</p></section>` : ''}
   <section class="card" style="display:flex;flex-direction:column;gap:12px"><h2>1 · Je précise</h2>
     <div class="grid2" style="gap:12px">${t.champs.map(k => champ(k, v[k])).join('')}</div></section>
   <section class="card" style="display:flex;flex-direction:column;gap:14px"><h2>2 · Je copie la demande</h2>
     ${filled ? '' : '<p class="small muted">Complétez les champs : la demande se met à jour toute seule.</p>'}
     ${prompts.map((p, i) => `<div style="display:flex;flex-direction:column;gap:8px"><b style="color:var(--ink)">${esc(p.titre)}</b>
       <div class="prompt" id="pr-${i}">${esc(p.texte)}</div>
-      <div class="row wrap"><button class="btn gold" data-act="copy" data-i="${i}">Copier la demande</button><a class="btn ghost" href="https://claude.ai/projects" target="_blank" rel="noopener">Ouvrir mes projets Claude</a></div></div>`).join('')}
+      <div class="row wrap"><button class="btn gold" data-act="copy" data-i="${i}">Copier la demande</button><a class="btn ghost" href="${t.outil ? t.outil.url : 'https://claude.ai/projects'}" target="_blank" rel="noopener">${t.outil ? esc(t.outil.label) : 'Ouvrir mes projets Claude'}</a></div></div>`).join('')}
   </section>
   <section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>3 · Je suis les consignes</h2>
     <ol style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px">${t.etapes.map(e => `<li>${esc(e)}</li>`).join('')}</ol></section>
@@ -502,17 +723,24 @@ function vFormateur() {
       <td class="hide-sm">${m}%</td><td>${lk(l.test)}</td><td>${lk(l.miniapp)}</td></tr>` }).join('')}</table></div>
     ${(() => { const c = F.livrables.filter(z => z.cellule === x.c && z.type === 'cdc'); if (!c.length) return '<p class="small muted">Cahier des charges : pas encore déposé.</p>'; let o = {}; try { o = JSON.parse(c[c.length - 1].valeur) } catch (e) {} return `<div class="note small"><b>Cahier des charges</b> · modules : ${esc((o.modules || []).join(', ') || '—')}<br>Priorités : ${esc(o.prio || '—')}<br>Échéancier : ${esc(o.echeancier || '—')}</div>` })()}
   </section>`).join('')}
-  <section class="card"><p class="small muted">Les auto-évaluations d'entrée et de sortie sont analysées dans la feuille Google Sheets des formulaires (onglet « Analyse »).</p></section>`;
+  <section class="card row wrap" style="gap:12px;align-items:center"><div style="flex:1;min-width:200px"><h2>Auto-évaluations</h2><p class="small muted">Le tableau de bord en direct, à projeter.</p></div><button class="btn gold" data-act="go" data-v="tableau">${ic('chart', 18)} Tableau de bord</button></section>
+  ${(F.avis || []).length ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Avis de sortie (anonymes)</h2>${F.avis.map(x => `<div class="note small"><b>${esc(x.cellule || '')}</b>${x.utile ? `<br>Le plus utile : ${esc(x.utile)}` : ''}${x.ameliorer ? `<br>À améliorer : ${esc(x.ameliorer)}` : ''}</div>`).join('')}</section>` : ''}`;
 }
 function sessionCode() { try { return sessionStorage.getItem('k3_fcode') || '' } catch (e) { return '' } }
 
 /* ======================= RENDU ======================= */
 function render() {
   const logged = !!DB.profil;
-  if (!logged && !['auth', 'formateur'].includes(S.v)) S.v = 'auth';
-  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur };
+  if (!logged && !['auth', 'formateur', 'autoeval', 'tableau'].includes(S.v)) S.v = 'auth';
+  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur, autoeval: () => vAutoeval(S.p), tableau: vTableau };
   $('#app').innerHTML = (views[S.v] || vHome)();
-  $('#topright').innerHTML = logged ? `<button class="chip gold" data-act="go" data-v="compte">${esc(DB.profil.prenom)}</button>` : '';
+  const bb = $('#backbtn'), atRoot = (logged && S.v === 'home') || (!logged && S.v === 'auth');
+  bb.hidden = atRoot; bb.innerHTML = ic('back', 22);
+  $('#topright').innerHTML = `<span class="tools">
+    ${atRoot ? '' : `<button class="hb" data-act="go" data-v="${logged ? 'home' : 'auth'}" title="Accueil" aria-label="Accueil">${ic('home', 20)}</button>`}
+    <button class="hb" id="refbtn" data-act="refresh" title="Actualiser" aria-label="Actualiser">${ic('refresh', 20)}</button>
+    ${logged ? `<button class="hb" data-act="go" data-v="compte" title="Mon compte" aria-label="Mon compte" style="background:#E0B54A;border-color:#E0B54A;color:#0F2552;font-weight:900;font-family:var(--display)">${esc((DB.profil.prenom || '?').charAt(0).toUpperCase())}</button>
+    <button class="hb" data-act="logout" title="Me déconnecter" aria-label="Me déconnecter">${ic('logout', 20)}</button>` : ''}</span>`;
   const nav = $('#nav'); nav.hidden = !logged;
   if (logged) nav.firstElementChild.innerHTML = [['home', 'home', 'Accueil'], ['jour', 'day', 'Journée'], ['atelier', 'spark', 'Atelier'], ['parcours', 'route', 'Parcours'], ['cellule', 'team', 'Cellule']]
     .map(([v, i, l]) => `<button class="${S.v === v || (v === 'atelier' && S.v === 'tache') ? 'on' : ''}" data-act="go" data-v="${v}">${ic(i, 22)}<span>${l}</span></button>`).join('');
@@ -520,17 +748,35 @@ function render() {
 }
 function afterRender() {
   const mk = (id, url) => { const el = document.getElementById(id); if (!el) return; if (window.QRCode) { el.innerHTML = ''; new QRCode(el, { text: url, width: 168, height: 168, colorDark: '#0F2552', colorLight: '#ffffff' }) } else setTimeout(() => mk(id, url), 400) };
-  if (S.v === 'evaluations') { mk('qr-entree', FORMS.entree); mk('qr-sortie', FORMS.sortie) }
+  if (S.v === 'evaluations' || S.v === 'tableau') mk('qr-ae', aeUrl('entree'));
+  if (S.v === 'tableau' && !S.st && !S.stLoading) loadStats();
   if (S.v === 'compte') mk('qr-app', appUrl());
   if (S.v === 'cellule' && !S.cel && apiOn() && !S.celLoading) loadCellule();
 }
 const appUrl = () => location.href.split('#')[0].split('?')[0];
 
 /* ======================= ACTIONS ======================= */
+function aeDraft() { if (!S.ae) return; DB.aeDraft = DB.aeDraft || {}; DB.aeDraft[S.ae.ph] = Object.assign({}, S.ae); save() }
+document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.ae; if (k && S.ae) { S.ae[k] = e.target.value; aeDraft() } });
+document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.ae; if (k && S.ae) { S.ae[k] = e.target.value; aeDraft() } });
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && document.body.classList.contains('proj')) { document.body.classList.remove('proj'); render() } });
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const a = b.dataset.act, v = b.dataset.v;
   if (a === 'go') return go(v);
+  if (a === 'back') return back();
+  if (a === 'ae-open') { S.err = ''; return go('autoeval', v) }
+  if (a === 'ae-niv') { const A = S.ae; A.niv[+b.dataset.k] = +v; aeDraft(); const y = window.scrollY; render(); window.scrollTo(0, y); return }
+  if (a === 'ae-set') { S.ae[b.dataset.k] = v; aeDraft(); const y = window.scrollY; render(); window.scrollTo(0, y); return }
+  if (a === 'ae-note') { S.ae.note = +v; aeDraft(); const y = window.scrollY; render(); window.scrollTo(0, y); return }
+  if (a === 'ae-send') return aeSend();
+  if (a === 'st-refresh') { S.st = null; render(); return loadStats() }
+  if (a === 'st-ph') { S.stPh = v; return render() }
+  if (a === 'proj') { const on = !document.body.classList.contains('proj'); document.body.classList.toggle('proj', on);
+    try { if (on && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); else if (!on && document.fullscreenElement) document.exitFullscreen() } catch (e) {}
+    return render() }
+  if (a === 'refresh') return actualiser(b);
+  if (a === 'reload') return location.reload();
   if (a === 'route') return route(v);
   if (a === 'auth') { S.auth = v; S.err = ''; return render() }
   if (a === 'signup') return signup();
@@ -600,7 +846,7 @@ async function login() {
   DB.profil = r.profil; DB.jeton = r.jeton; DB.av = (r.donnees && r.donnees.avancement) || {}; DB.liv = (r.donnees && r.donnees.livrables) || {}; DB.queue = []; save();
   toast('Content de vous revoir, ' + r.profil.prenom + ' !'); go('home');
 }
-function logout(silent) { if (!silent && !confirm('Se déconnecter de cet appareil ?')) return; const th = DB.theme; DB = { av: {}, liv: {}, vars: {}, queue: [], theme: th }; save(); S.cel = null; go('auth') }
+function logout(silent) { if (!silent && !confirm('Se déconnecter de cet appareil ?')) return; const th = DB.theme; DB = { av: {}, liv: {}, vars: {}, queue: [], theme: th }; save(); S.cel = null; S.F = null; try { sessionStorage.removeItem('k3_fcode') } catch (e) {} go('auth'); toast('Vous êtes déconnecté.') }
 async function loadCellule() {
   S.celLoading = true; S.celErr = '';
   const r = await api('cellule', auth()); S.celLoading = false;
@@ -617,11 +863,23 @@ async function loadF(code) {
 /* ---------- démarrage ---------- */
 if (DB.theme) document.documentElement.dataset.theme = DB.theme;
 if (!navigator.onLine) $('#offline').hidden = false;
-S.v = DB.profil ? 'home' : 'auth';
+S.v = DB.profil ? 'home' : 'auth'; S.depth = 0;
+(() => { const q = new URLSearchParams(location.search); if (q.get('eval')) { S.v = 'autoeval'; S.p = q.get('eval') === 'sortie' ? 'sortie' : 'entree' } else if (q.has('tableau')) S.v = 'tableau' })();
+try { history.replaceState({ v: S.v, p: S.p }, '') } catch (e) {}
 render(); setTimeout(flush, 1200);
 setInterval(() => { if (S.v === 'home' || S.v === 'jour') render() }, 60000);
 setInterval(() => { if (S.v === 'formateur' && S.F) loadF(sessionCode()) }, 45000);
-if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+setInterval(() => { if (S.v === 'tableau' && document.visibilityState !== 'hidden') loadStats() }, 15000);
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  const hadCtl = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js').then(r => { setInterval(() => r.update().catch(() => {}), 30 * 60000) }).catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadCtl || document.querySelector('.updbar')) return;
+    const d = document.createElement('div'); d.className = 'updbar';
+    d.innerHTML = '<span>Nouvelle version de Kennedy 3.0</span><button data-act="reload">Mettre à jour</button>';
+    document.body.appendChild(d);
+  });
+}
 </script>
 </body>
 </html>
