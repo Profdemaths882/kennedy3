@@ -296,7 +296,7 @@ function route(dest) { if (!dest) return; if (dest.startsWith('act:')) return go
 
 /* ======================= VUES ======================= */
 function vAuth() {
-  const su = S.auth === 'signup';
+  const su = S.auth === 'signup', F0 = S.su || {};
   return `<section class="hero"><p class="eyebrow">CEM J.F. Kennedy · Formation 2026-2027</p>
     <h1 style="margin:8px 0 10px">Kennedy 3.0</h1>
     <p>L'application de formation des enseignants : l'IA et les applications éducatives au service des apprentissages. Un compte par prof, toute la formation au même endroit, en présentiel et à distance.</p></section>
@@ -305,16 +305,18 @@ function vAuth() {
     <div class="tabs"><button class="${su ? 'on' : ''}" data-act="auth" data-v="signup">Créer mon compte</button><button class="${su ? '' : 'on'}" data-act="auth" data-v="login">Me connecter</button></div>
     ${su ? `
     <div class="grid2" style="gap:12px">
-      <label class="form">Prénom<input id="f-prenom" autocomplete="given-name"></label>
-      <label class="form">Nom<input id="f-nom" autocomplete="family-name"></label>
+      <label class="form">Prénom<input id="f-prenom" autocomplete="given-name" value="${esc(F0.prenom || '')}"></label>
+      <label class="form">Nom<input id="f-nom" autocomplete="family-name" value="${esc(F0.nom || '')}"></label>
     </div>
-    <label class="form">Ma cellule<select id="f-cellule"><option value="">Choisir…</option>${CELLULES.map(c => `<option>${esc(c)}</option>`).join('')}</select></label>
-    <label class="form">Ma ou mes disciplines<input id="f-disc" placeholder="Mathématiques, Physique-chimie"></label>
-    <div class="form">Mes niveaux<div class="checks">${NIVEAUX.map(n => `<label><input type="checkbox" name="niv" value="${n}">${n}</label>`).join('')}</div></div>
+    <label class="form">Ma cellule<select id="f-cellule"><option value="">Choisir…</option>${CELLULES.map(c => `<option ${F0.cellule === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
+    <label class="form">Ma ou mes disciplines<input id="f-disc" placeholder="Mathématiques, Physique-chimie" value="${esc(F0.disciplines || '')}"></label>
+    <div class="form">Mes niveaux<div class="checks">${NIVEAUX.map(n => `<label><input type="checkbox" name="niv" value="${n}" ${(F0.niveaux || '').split(',').includes(n) ? 'checked' : ''}>${n}</label>`).join('')}</div></div>
     <div class="grid2" style="gap:12px">
-      <label class="form">Pseudo (pour me connecter)<input id="f-pseudo" autocapitalize="none" placeholder="ex. awa.diop"></label>
+      <label class="form">Pseudo (pour me connecter)<input id="f-pseudo" autocapitalize="none" placeholder="ex. awa.diop" value="${esc(F0.pseudo || '')}"></label>
       <label class="form">Code secret (4 chiffres)<input id="f-pin" inputmode="numeric" maxlength="4" type="password"></label>
-    </div>` : `
+    </div>
+    <label class="row small" style="gap:8px;font-weight:800;color:var(--ink)"><input type="checkbox" id="f-isf" ${F0.formateur ? 'checked' : ''} onchange="document.getElementById('f-fbox').hidden=!this.checked"> J'ai reçu une invitation de formateur</label>
+    <label class="form" id="f-fbox" ${F0.formateur ? '' : 'hidden'}>Code d'invitation<input id="f-fcode" autocomplete="off" value="${esc(S.invite || '')}" placeholder="F-XXXXXX"></label>` : `
     <label class="form">Pseudo<input id="f-pseudo" autocapitalize="none"></label>
     <label class="form">Code secret<input id="f-pin" inputmode="numeric" maxlength="4" type="password"></label>`}
     ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
@@ -330,6 +332,7 @@ function vHome() {
     { v: 'jour', i: 'day', c: '', t: 'La journée du 20 octobre', d: 'Programme, horaires, ce qui se passe maintenant' },
     { v: 'evaluations', i: 'qr', c: 'o', t: 'Auto-évaluations', d: DB.ae && DB.ae.entree ? "Entrée envoyée ✓ · la sortie le 20 octobre" : "À faire avant le 20 octobre : 2 minutes" },
     { v: 'tableau', i: 'chart', c: 'g', t: 'Tableau de bord', d: 'Les résultats du groupe, en direct' },
+    ...(P.formateur ? [{ v: 'formateur', i: 'team', c: 'o', t: 'Espace formateur', d: 'Suivi en direct de tous les profs' }, { v: 'corrections', i: 'check', c: 'g', t: 'Corriger les travaux', d: 'Notes automatiques, validation, commentaires' }] : [{ v: 'travaux', i: 'check', c: 'g', t: 'Mes travaux', d: 'Déposer, note automatique sur 20' }]),
     { v: 'kit', i: 'bag', c: '', t: 'Mon kit', d: `${KIT.filter(k => isDone('kit:' + k.k)).length} / ${KIT.length} éléments prêts` },
     { v: 'atelier', i: 'spark', c: 'o', t: "L'atelier Claude", d: 'La bonne demande et les consignes pour chaque tâche' },
     { v: 'methode', i: 'layers', c: 'g', t: 'La méthode ProfDeMaths', d: 'Le traitement des connaissances, étape par étape' },
@@ -338,7 +341,7 @@ function vHome() {
     { v: 'regles', i: 'shield', c: 'r', t: 'Usage responsable', d: 'Quatre règles d\'or, PLANETE 3.0' }
   ];
   return `<section class="hero"><div class="row" style="gap:18px;align-items:center">
-      <div style="flex:1;min-width:0"><p class="eyebrow">${esc(P.cellule || '')}</p>
+      <div style="flex:1;min-width:0"><p class="eyebrow">${P.formateur ? 'Formateur · ' : ''}${esc(P.cellule || '')}</p>
       <h1 style="margin:6px 0 8px">Bonjour ${esc(P.prenom)} !</h1>
       <p>${now ? `<b style="color:#fff">En ce moment :</b> ${esc(now.t)}` : 'Votre formation à l\'IA, du jour J à la formation n°2 de janvier 2027.'}</p></div>
       <div class="ring" style="--p:${g}"><div>${g}%</div></div></div>
@@ -467,7 +470,8 @@ function statsLocal(rows) {   // même calcul que le serveur, pour le mode démo
   const E = rows.filter(x => x.phase === 'entree'), So = rows.filter(x => x.phase === 'sortie'), ent = {}; E.forEach(x => ent[x.code] = x);
   const P = So.filter(x => ent[x.code]);
   const m10 = x => r2(x.niveaux.reduce((a, c) => a + c, 0) / N);
-  const participants = P.map(x => { const e = m10(ent[x.code]), s = m10(x); return { code: x.code, cellule: x.cellule, e, s, gain: r2(s - e) } }).sort((a, b) => b.gain - a.gain || b.s - a.s);
+  const cap = x => x.niveaux.filter(v => v >= 3).length;
+  const participants = P.map(x => { const e = m10(ent[x.code]), s = m10(x); return { code: x.code, cellule: x.cellule, e, s, gain: r2(s - e), ce: cap(ent[x.code]), cs: cap(x) } }).sort((a, b) => b.gain - a.gain || b.s - a.s);
   return { ok: true, local: true, maj: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), entree: bloc(E), sortie: bloc(So), paires: P.length, participants,
     gain: P.length ? AUTOEVAL.competences.map((c, k) => r2(P.reduce((s, x) => s + x.niveaux[k] - ent[x.code].niveaux[k], 0) / P.length)) : [] };
 }
@@ -479,66 +483,161 @@ async function loadStats() {
   if (S.v === 'tableau') render();
 }
 function vTableau() {
-  const T = S.st;
-  const head = `<div class="row wrap" style="gap:10px"><div style="flex:1;min-width:220px"><p class="eyebrow">Auto-évaluation · formation du 20 octobre</p><h1 style="margin-top:6px">Tableau de bord</h1></div>
+  const T = S.st, proj = document.body.classList.contains('proj');
+  const head = `<div class="row wrap" style="gap:10px"><div style="flex:1;min-width:220px"><p class="eyebrow">Formation du 20 octobre · M. Racine Thiam et Mme Diop Aminata Mbaye</p><h1 style="margin-top:6px">Où en sommes-nous ?</h1></div>
     <button class="btn sm ghost" data-act="st-refresh">${ic('refresh', 16)} Actualiser</button>
-    <button class="btn sm" data-act="proj">${document.body.classList.contains('proj') ? 'Quitter la projection' : 'Projeter'}</button></div>`;
+    <button class="btn sm" data-act="proj">${proj ? 'Quitter la projection' : 'Projeter'}</button></div>`;
   if (!T) return head + `<section class="card"><p class="muted">${S.stErr ? esc(S.stErr) : 'Chargement des résultats…'}</p></section>`;
-  const E = T.entree, O = T.sortie, C = AUTOEVAL.competences, L = AUTOEVAL.niveaux, hasO = O.n > 0;
-  const f1 = x => x === null || x === undefined ? '—' : String(x.toFixed ? x.toFixed(1) : x).replace('.', ',');
-  const pctAuto = b => { const t = b.dist.reduce((s, d) => s + d[0] + d[1] + d[2] + d[3], 0); return t ? Math.round(b.dist.reduce((s, d) => s + d[2] + d[3], 0) / t * 100) : 0 };
-  const mean = a => { const v = a.filter(x => x !== null); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null };
-  const live = `<p class="small muted row wrap" style="gap:12px"><span class="live">En direct</span> Mis à jour ${esc(T.maj || '')} · actualisation toutes les 15 s${T.local ? ' · <b>mode démonstration</b> : seulement les réponses de cet appareil' : ''}</p>`;
-  if (!E.n && !O.n) return head + live + `<section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start"><h2>Pas encore de réponse</h2><p class="muted">Les résultats s'afficheront ici dès la première auto-évaluation.</p><button class="btn gold" data-act="ae-open" data-v="entree">Remplir l'auto-évaluation</button></section>`;
+  const E = T.entree, O = T.sortie, C = AUTOEVAL.competences, hasO = O.n > 0;
+  const live = `<p class="small muted row wrap" style="gap:12px"><span class="live">En direct</span> mis à jour à ${esc(T.maj || '')}${T.local ? ' · <b>mode démonstration</b> : seulement les réponses de cet appareil' : ''}</p>`;
+  if (!E.n && !O.n) return head + live + `<section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start"><h2>Personne n'a encore répondu</h2><p class="muted">Les résultats s'afficheront ici dès la première auto-évaluation.</p><button class="btn gold" data-act="ae-open" data-v="entree">Remplir l'auto-évaluation</button></section>`;
+  // « capable » = seul(e) ou avec un peu d'aide (niveaux 3 et 4)
+  const capK = (b, k) => { const d = b.dist[k], t = d[0] + d[1] + d[2] + d[3]; return t ? Math.round((d[2] + d[3]) / t * 100) : 0 };
+  const capAll = b => { let c = 0, t = 0; b.dist.forEach(d => { c += d[2] + d[3]; t += d[0] + d[1] + d[2] + d[3] }); return t ? Math.round(c / t * 100) : 0 };
+  const capE = C.map((c, k) => capK(E, k)), capO = hasO ? C.map((c, k) => capK(O, k)) : [];
+  const big = (v, l, sub, tone) => `<div class="kpi" style="${tone ? 'border:2px solid ' + tone : ''}"><span class="v">${v}</span><span class="l" style="font-size:15px">${l}</span>${sub ? `<span class="small muted">${sub}</span>` : ''}</div>`;
   const kpis = `<div class="kpis">
-    <div class="kpi"><span class="v">${E.n}</span><span class="l">réponses à l'entrée</span></div>
-    <div class="kpi"><span class="v">${f1(mean(E.moy))}<small style="font-size:.5em"> / 4</small></span><span class="l">niveau moyen à l'entrée</span></div>
-    <div class="kpi"><span class="v">${pctAuto(E)} %</span><span class="l">des réponses : « seul(e) » ou « avec un peu d'aide »</span></div>
-    ${hasO ? `<div class="kpi"><span class="v">${O.n}</span><span class="l">réponses à la sortie</span></div>
-    <div class="kpi"><span class="v">${f1(mean(O.moy))}<small style="font-size:.5em"> / 4</small></span><span class="l">niveau moyen à la sortie</span></div>
-    <div class="kpi"><span class="v">${T.gain.length ? '+' + f1(mean(T.gain)) : '—'}</span><span class="l">progression moyenne (${T.paires} pers. entrée + sortie)</span></div>`
-    : `<div class="kpi"><span class="v">${Object.keys(E.cellules).length}</span><span class="l">cellules représentées</span></div>`}</div>`;
-  const lv = ['var(--l1)', 'var(--l2)', 'var(--l3)', 'var(--l4)'];
-  const showPh = S.stPh === 'sortie' && hasO ? 'sortie' : 'entree', B = showPh === 'sortie' ? O : E;
-  const dist = `<section class="card" style="display:flex;flex-direction:column;gap:10px">
-    <div class="row wrap" style="gap:10px"><h2 style="flex:1">Où en est le groupe, compétence par compétence</h2>
-    ${hasO ? `<div class="tabs"><button class="${showPh === 'entree' ? 'on' : ''}" data-act="st-ph" data-v="entree">Entrée</button><button class="${showPh === 'sortie' ? 'on' : ''}" data-act="st-ph" data-v="sortie">Sortie</button></div>` : ''}</div>
+    ${big(E.n, `prof${E.n > 1 ? 's ont' : ' a'} répondu avant la formation`, Object.keys(E.cellules).length + ' cellule(s) représentée(s)')}
+    ${big(capAll(E) + ' %', 'se sentaient déjà capables', 'avant la formation', 'var(--c-in)')}
+    ${hasO ? big(capAll(O) + ' %', 'se sentent capables maintenant', `+${capAll(O) - capAll(E)} points · ${O.n} réponse(s)`, 'var(--c-out)') : ''}
+    ${hasO && O.note ? big(String(Math.round(O.note * 10) / 10).replace('.', ',') + ' / 5', 'note donnée à la formation', O.nNote + ' avis') : ''}</div>
+    <p class="small muted">« Capable » = je le fais <b>seul(e)</b> ou <b>avec un peu d'aide</b>.</p>`;
+  // phrases simples : points forts et besoins
+  const idx = C.map((c, k) => k), ref = hasO ? capO : capE;
+  const top = idx.slice().sort((a, b) => ref[b] - ref[a]).slice(0, 3), low = idx.slice().sort((a, b) => ref[a] - ref[b]).slice(0, 3);
+  const li = (k, v) => `<li style="margin:6px 0"><b style="color:var(--ink)">${esc(C[k].c)}</b> <span class="muted">· ${v} %</span></li>`;
+  const gains = hasO ? idx.slice().sort((a, b) => (capO[b] - capE[b]) - (capO[a] - capE[a])).slice(0, 3) : [];
+  const words = `<div class="g2f">
+    <section class="card" style="border-top:6px solid var(--green)"><h2>${hasO ? 'Ce que le groupe maîtrise le mieux' : 'Ce que le groupe sait déjà faire'}</h2><ul style="margin:10px 0 0;padding-left:20px">${top.map(k => li(k, ref[k])).join('')}</ul></section>
+    ${hasO ? `<section class="card" style="border-top:6px solid var(--c-out)"><h2>Les plus grands progrès</h2><ul style="margin:10px 0 0;padding-left:20px">${gains.map(k => `<li style="margin:6px 0"><b style="color:var(--ink)">${esc(C[k].c)}</b> <span class="muted">· ${capE[k]} % → ${capO[k]} %</span></li>`).join('')}</ul></section>`
+    : `<section class="card" style="border-top:6px solid var(--gold)"><h2>Ce que nous allons travailler en priorité</h2><ul style="margin:10px 0 0;padding-left:20px">${low.map(k => li(k, ref[k])).join('')}</ul></section>`}</div>`;
+  // une barre par compétence : % de capables, avant (et après)
+  const bar = (v, col, lab) => `<div class="pb"><i style="width:${Math.max(v, 1)}%;background:${col}" title="${lab} : ${v} %"></i><em>${v} %</em></div>`;
+  let lastO = 0;
+  const list = `<section class="card" style="display:flex;flex-direction:column;gap:6px"><h2>Compétence par compétence</h2>
+    <div class="lg"><span><i style="background:var(--c-in)"></i>Avant la formation</span>${hasO ? '<span><i style="background:var(--c-out)"></i>Après la formation</span>' : ''}<span class="muted">% de profs qui se sentent capables</span></div>
+    ${C.map((c, k) => { const h = c.o !== lastO ? `<p class="eyebrow" style="margin-top:12px">Objectif ${c.o} · ${esc(AUTOEVAL.objectifs[c.o - 1])}</p>` : ''; lastO = c.o;
+      return h + `<div class="stk"><span>${esc(c.c)}</span><div class="pair">${bar(capE[k], 'var(--c-in)', 'Avant')}${hasO ? bar(capO[k], 'var(--c-out)', 'Après') : ''}</div></div>` }).join('')}</section>`;
+  // chaque participant : nombre de compétences maîtrisées sur 10
+  const me = DB.ae && DB.ae.code, P = (T.participants || []).slice().sort((a, b) => ((b.cs || 0) - (b.ce || 0)) - ((a.cs || 0) - (a.ce || 0)) || (b.cs || 0) - (a.cs || 0));
+  const parts = hasO && P.length ? `<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>Les progrès de chacun</h2>
+    <p class="small muted">Nombre de compétences sur 10 où chacun se sent capable, avant → après. Chacun se reconnaît à son code.</p>
+    ${P.map(x => { const ce = x.ce !== undefined ? x.ce : Math.round((x.e - 1) / 3 * 10), cs = x.cs !== undefined ? x.cs : Math.round((x.s - 1) / 3 * 10);
+      return `<div class="stk"><span><b style="color:var(--ink)">${esc(x.code)}</b>${x.code === me ? ' <span class="pill gold">moi</span>' : ''} <span class="small muted">${esc(String(x.cellule || '').replace(/ · .*/, ''))}</span></span>
+      <div class="row" style="gap:10px"><div class="db" style="flex:1" title="${esc(x.code)} : ${ce}/10 → ${cs}/10"><i class="db-l" style="left:${Math.min(ce, cs) * 10}%;width:${Math.abs(cs - ce) * 10}%"></i><i class="db-e" style="left:${ce * 10}%"></i><i class="db-s" style="left:${cs * 10}%"></i></div>
+      <b style="color:var(--ink);white-space:nowrap;min-width:92px">${ce}/10 → ${cs}/10</b></div></div>` }).join('')}</section>` : '';
+  // ma progression (sur cet appareil)
+  const mine = DB.ae && DB.ae.entree && DB.ae.entree.niv && DB.ae.sortie && DB.ae.sortie.niv;
+  const perso = mine && !proj ? (() => { const a = DB.ae.entree.niv.filter(v => v >= 3).length, b = DB.ae.sortie.niv.filter(v => v >= 3).length;
+    return `<section class="card" style="border:2px solid var(--gold);display:flex;flex-direction:column;gap:8px"><h2>Ma progression · ${esc(me)}</h2>
+    <p style="font-size:20px;color:var(--ink)"><b>${a}/10</b> compétences avant → <b>${b}/10</b> après</p>
+    ${C.map((c, k) => { const x = DB.ae.entree.niv[k], y = DB.ae.sortie.niv[k]; return `<p class="small" style="margin:2px 0">${y > x ? '⬆️' : y === x ? '➖' : '⬇️'} ${esc(c.c)} : <span class="muted">${esc(AUTOEVAL.niveaux[x - 1])}</span> → <b>${esc(AUTOEVAL.niveaux[y - 1])}</b></p>` }).join('')}
+    <p class="small muted">Visible seulement sur votre téléphone.</p></section>` })() : '';
+  // détail pour les formateurs (repliable)
+  const lv = ['var(--l1)', 'var(--l2)', 'var(--l3)', 'var(--l4)'], L = AUTOEVAL.niveaux;
+  const B = S.stPh === 'sortie' && hasO ? O : E;
+  const detail = `<details class="card"><summary><b>Le détail (pour les formateurs)</b></summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+    ${hasO ? `<div class="tabs"><button class="${B === E ? 'on' : ''}" data-act="st-ph" data-v="entree">Avant</button><button class="${B === O ? 'on' : ''}" data-act="st-ph" data-v="sortie">Après</button></div>` : ''}
     <div class="lg">${L.map((l, i) => `<span><i style="background:${lv[i]}"></i>${esc(l)}</span>`).join('')}</div>
-    ${C.map((c, k) => { const d = B.dist[k], t = d.reduce((a, b) => a + b, 0) || 1;
-      return `<div class="stk"><span>${k + 1}. ${esc(c.c)}</span><div class="seg" role="img" aria-label="${esc(c.c)} : ${d.map((x, i) => L[i] + ' ' + x).join(', ')}">${d.map((x, i) => x ? `<i style="width:${x / t * 100}%;background:${lv[i]}" title="${esc(L[i])} : ${x} (${Math.round(x / t * 100)} %)"></i>` : '').join('')}</div></div>` }).join('')}
-    <p class="small muted">${B.n} réponse(s) · survolez ou touchez une barre pour le détail.</p></section>`;
-  const max4 = v => Math.max(0, Math.min(100, (v || 0) / 4 * 100));
-  const pairRow = (lab, a, b) => `<div class="stk"><span>${esc(lab)}</span><div class="pair">
-      <div class="pb"><i style="width:${max4(a)}%;background:var(--c-in)" title="Entrée : ${f1(a)} / 4"></i><em>${f1(a)}</em></div>
-      ${hasO ? `<div class="pb"><i style="width:${max4(b)}%;background:var(--c-out)" title="Sortie : ${f1(b)} / 4"></i><em>${f1(b)}</em></div>` : ''}</div></div>`;
-  const legPair = `<div class="lg"><span><i style="background:var(--c-in)"></i>Entrée</span>${hasO ? '<span><i style="background:var(--c-out)"></i>Sortie</span>' : ''}<span class="muted">niveau moyen sur 4</span></div>`;
-  const objs = `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Les quatre objectifs de l'année</h2>${legPair}
-    ${AUTOEVAL.objectifs.map((o, i) => pairRow(`${i + 1}. ${o}`, E.obj[i], O.obj[i])).join('')}</section>`;
-  const comps = hasO ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Entrée et sortie, compétence par compétence</h2>${legPair}
-    ${C.map((c, k) => pairRow(`${k + 1}. ${c.c}`, E.moy[k], O.moy[k])).join('')}</section>` : '';
-  const cnt = (obj, title, sub) => { const ks = Object.keys(obj).sort((a, b) => obj[b] - obj[a]), mx = Math.max(1, ...ks.map(k => obj[k]));
-    return `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>${title}</h2>${sub ? `<p class="small muted">${sub}</p>` : ''}
-    ${ks.length ? ks.map(k => `<div class="stk"><span>${esc(k)}</span><div class="pb"><i style="width:${obj[k] / mx * 100}%;background:var(--c-in)" title="${esc(k)} : ${obj[k]}"></i><em>${obj[k]}</em></div></div>`).join('') : '<p class="small muted">—</p>'}</section>` };
-  const ia = cnt(Object.fromEntries(AUTOEVAL.ia.map(k => [k, E.ia[k] || 0])), "Avant la formation, l'IA dans le travail", 'Nombre de réponses');
-  const cel = cnt(E.cellules, 'Participation par cellule', "Auto-évaluations d'entrée reçues");
-  const avis = hasO ? `<div class="g2f">${cnt(Object.fromEntries(AUTOEVAL.projet.map(k => [k, O.projet[k] || 0])), 'Mon projet Claude dès la semaine prochaine ?', '')}
-    <section class="card" style="display:flex;flex-direction:column;gap:6px"><h2>Note globale</h2><p class="kpi" style="border:0;padding:0"><span class="v">${f1(O.note)}<small style="font-size:.5em"> / 5</small></span><span class="l">${O.nNote} avis</span></p></section></div>` : '';
-  const table = `<details class="card"><summary><b>Voir les chiffres en tableau</b></summary><div style="overflow:auto;margin-top:10px"><table class="t">
-    <tr><th>Compétence</th>${L.map(l => `<th>${esc(l)}</th>`).join('')}<th>Moy. entrée</th>${hasO ? '<th>Moy. sortie</th>' : ''}</tr>
-    ${C.map((c, k) => `<tr><td>${esc(c.c)}</td>${E.dist[k].map(x => `<td>${x}</td>`).join('')}<td>${f1(E.moy[k])}</td>${hasO ? `<td>${f1(O.moy[k])}</td>` : ''}</tr>`).join('')}</table></div></details>`;
-  const me = DB.ae && DB.ae.code, mine = DB.ae && DB.ae.entree && DB.ae.entree.niv && DB.ae.sortie && DB.ae.sortie.niv;
-  const perso = mine ? `<section class="card" style="display:flex;flex-direction:column;gap:10px;border:2px solid var(--gold)"><h2>Ma progression · ${esc(me)}</h2>${legPair}
-    ${C.map((c, k) => pairRow(`${k + 1}. ${c.c}`, DB.ae.entree.niv[k], DB.ae.sortie.niv[k])).join('')}
-    <p class="small muted">Visible seulement sur votre appareil.</p></section>` : '';
-  const P = T.participants || [];
-  const parts = hasO && P.length ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>La progression de chaque participant</h2>
-    <div class="lg"><span><i style="background:var(--c-in);border-radius:50%"></i>Entrée</span><span><i style="background:var(--c-out);border-radius:50%"></i>Sortie</span><span class="muted">niveau moyen sur les 10 compétences, de 1 à 4 · code personnel</span></div>
-    ${P.map(x => { const a = (x.e - 1) / 3 * 100, b = (x.s - 1) / 3 * 100, lo = Math.min(a, b), w = Math.abs(b - a);
-      return `<div class="stk"><span><b style="color:var(--ink)">${esc(x.code)}</b>${x.code === me ? ' <span class="pill gold">moi</span>' : ''}<br><span class="small muted">${esc(String(x.cellule || '').replace(/ · .*/, ''))} · ${x.gain >= 0 ? '+' : ''}${f1(x.gain)}</span></span>
-      <div class="db" title="${esc(x.code)} : entrée ${f1(x.e)} → sortie ${f1(x.s)}"><i class="db-l" style="left:${lo}%;width:${w}%"></i><i class="db-e" style="left:${a}%"></i><i class="db-s" style="left:${b}%"></i></div></div>` }).join('')}
-    <div class="stk"><span></span><div class="small muted row" style="justify-content:space-between"><span>1 · ne sait pas faire</span><span>4 · seul(e)</span></div></div></section>` : '';
-  return head + live + kpis + perso + objs + parts + dist + comps + `<div class="g2f">${ia}${cel}</div>` + avis + table +
-    `<section class="card row wrap" style="gap:16px;align-items:center"><div class="qr" id="qr-ae"></div><div style="flex:1;min-width:200px"><h2>Pas encore répondu ?</h2><p class="small muted">Scannez ce code : il ouvre l'auto-évaluation d'entrée, même sans compte.</p></div></section>`;
+    ${C.map((c, k) => { const d = B.dist[k], t = d.reduce((a, b) => a + b, 0) || 1; return `<div class="stk"><span>${esc(c.c)}</span><div class="seg">${d.map((x, i) => x ? `<i style="width:${x / t * 100}%;background:${lv[i]}" title="${esc(L[i])} : ${x}"></i>` : '').join('')}</div></div>` }).join('')}
+    <p class="small muted">Avant la formation, l'IA dans le travail : ${AUTOEVAL.ia.map(k => `${esc(k)} ${E.ia[k] || 0}`).join(' · ')}</p>
+    <p class="small muted">Participation : ${Object.keys(E.cellules).map(k => `${esc(k)} ${E.cellules[k]}`).join(' · ')}</p>
+    ${hasO ? `<p class="small muted">Projet Claude dès la semaine prochaine : ${AUTOEVAL.projet.map(k => `${esc(k)} ${O.projet[k] || 0}`).join(' · ')}</p>` : ''}</div></details>`;
+  const qr = proj ? '' : `<section class="card row wrap" style="gap:16px;align-items:center"><div class="qr" id="qr-ae"></div><div style="flex:1;min-width:200px"><h2>Pas encore répondu ?</h2><p class="small muted">Scannez ce code : il ouvre l'auto-évaluation, même sans compte.</p></div></section>`;
+  return head + live + kpis + words + perso + list + parts + detail + qr;
+}
+
+
+/* ======================= TRAVAUX : dépôt et correction automatique ======================= */
+function cdcCount(raw) { let o = {}; try { o = JSON.parse(raw || '{}') } catch (e) {} return ['qui', 'quoi', 'prio', 'donnees', 'echeancier'].filter(k => String(o[k] || '').trim()).length + ((o.modules || []).length ? 1 : 0) }
+function noteTravail(T, d) {
+  const v = (d && d.v) || {}, ch = (d && d.c) || {}; let tot = 0;
+  const det = T.criteres.map((c, i) => { let g = 0; const L = String(v.lien || '').trim();
+    if (!c.auto) g = ch[i] ? c.pts : 0;
+    else if (c.auto === 'docs') { const n = +v.docs || 0; g = n >= 5 ? c.pts : n >= 3 ? Math.round(c.pts / 2) : n >= 1 ? 1 : 0 }
+    else if (c.auto === 'nbq') { const n = +v.nbq || 0; g = n >= 20 ? c.pts : n >= 10 ? 2 : n >= 5 ? 1 : 0 }
+    else if (c.auto === 'lienForms') g = /^https:\/\/(docs\.google\.com\/forms\/|forms\.gle\/)/.test(L) && !/\/edit(\b|$|\?)/.test(L) ? c.pts : 0;
+    else if (c.auto === 'lien') g = /^https:\/\/[^\s/]+\.[^\s]+/.test(L) ? c.pts : 0;
+    else if (c.auto === 'cdc') { const n = +(d && d.cdc) || 0; g = n >= 5 ? c.pts : n >= 3 ? 2 : n >= 1 ? 1 : 0 }
+    tot += g; return { t: c.t, pts: c.pts, g, conseil: c.conseil, auto: !!c.auto } });
+  return { note: tot, mention: tot >= 16 ? 'Très bien' : tot >= 12 ? 'Bien' : tot >= 8 ? 'À compléter' : 'À reprendre', det };
+}
+const mentionPill = m => `<span class="pill ${m === 'Très bien' || m === 'Bien' ? 'ok' : m === 'À compléter' ? 'gold' : 'ko'}">${esc(m)}</span>`;
+function retourHtml(r, compact) {
+  const ok = r.det.filter(x => x.g === x.pts), ko = r.det.filter(x => x.g < x.pts);
+  return `${ok.length ? `<p class="small" style="margin:6px 0 2px"><b style="color:var(--green)">Points forts</b></p>${ok.map(x => `<p class="small" style="margin:2px 0">✓ ${esc(x.t)}</p>`).join('')}` : ''}
+    ${ko.length ? `<p class="small" style="margin:8px 0 2px"><b style="color:var(--gold-ink)">Pour améliorer</b></p>${ko.map(x => `<p class="small" style="margin:2px 0">→ ${esc(x.conseil)}${compact ? '' : ` <span class="muted">(${x.g}/${x.pts})</span>`}</p>`).join('')}` : '<p class="small" style="margin-top:6px"><b>Tout est fait. Bravo !</b></p>'}`;
+}
+function comFor(list, pseudo, trav) { return (list || []).find(x => x.travail === trav && (!pseudo || x.pseudo === pseudo)) }
+function vTravaux() {
+  if (!S.comLoaded && apiOn() && DB.jeton && DB.jeton !== 'local') { S.comLoaded = true; api('mesCommentaires', auth()).then(r => { if (r.ok) { DB.com = r.commentaires; save(); if (S.v === 'travaux') render() } }) }
+  return `<div><p class="eyebrow">Corrigés automatiquement</p><h1 style="margin-top:6px">Mes travaux</h1>
+  <p class="muted" style="margin-top:6px">Pour chaque activité, déposez votre travail : l'application le corrige tout de suite sur 20 et vous dit quoi améliorer. Les formateurs le valident ensuite.</p></div>
+  ${TRAVAUX.map(T => { let d = null; try { d = JSON.parse(DB.liv['trav:' + T.id] || 'null') } catch (e) {} const r = d ? noteTravail(T, d) : null, c = comFor(DB.com, null, 'trav:' + T.id);
+    return `<section class="card" style="display:flex;flex-direction:column;gap:10px"><p class="eyebrow">${esc(T.act)} · ${esc(T.qui)}</p>
+      <div class="row wrap" style="gap:10px"><h2 style="flex:1">${esc(T.t)}</h2>${r ? `<b style="font-family:var(--display);font-size:24px;color:var(--ink)">${r.note}/20</b> ${mentionPill(r.mention)}` : '<span class="pill">Pas encore déposé</span>'}</div>
+      ${c ? `<div class="note small"><b>${esc(c.statut || 'Commentaire')}</b> · formateur : ${esc(c.texte || '')}</div>` : ''}
+      <button class="btn ${r ? 'ghost' : 'gold'}" style="align-self:flex-start" data-act="tr-open" data-v="${T.id}">${r ? 'Voir ou modifier mon dépôt' : 'Déposer mon travail'}</button></section>` }).join('')}`;
+}
+function trState(id) {
+  if (!S.tr || S.tr.id !== id) { let d = {}; try { d = JSON.parse(DB.liv['trav:' + id] || '{}') } catch (e) {} S.tr = { id, v: Object.assign({}, d.v || {}), c: Object.assign({}, d.c || {}) } }
+  return S.tr;
+}
+function trResult() { const T = TRAVAUX.find(x => x.id === S.tr.id); return noteTravail(T, { v: S.tr.v, c: S.tr.c, cdc: cdcCount(DB.liv.cdc) }) }
+function scoreBox(r) { return `<div class="row wrap" style="gap:12px;align-items:center"><span style="font-family:var(--display);font-weight:900;font-size:40px;color:var(--ink)">${r.note}<small style="font-size:.45em">/20</small></span>${mentionPill(r.mention)}</div>${retourHtml(r)}` }
+function vTravail(id) {
+  const T = TRAVAUX.find(x => x.id === id); if (!T) return vTravaux();
+  const st = trState(id), r = trResult(), c = comFor(DB.com, null, 'trav:' + id);
+  const field = f => { const val = esc(st.v[f.k] || '');
+    if (f.type === 'niveau') return `<label class="form">${esc(f.l)}<select data-tr="${f.k}"><option value="">Choisir…</option>${NIVEAUX.map(n => `<option ${st.v[f.k] === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
+    if (f.type === 'choix') return `<label class="form">${esc(f.l)}<select data-tr="${f.k}"><option value="">Choisir…</option>${f.opts.map(n => `<option ${st.v[f.k] === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>`;
+    return `<label class="form">${esc(f.l)}<input data-tr="${f.k}" type="${f.type === 'number' ? 'number' : f.type === 'url' ? 'url' : 'text'}" ${f.type === 'number' ? 'min="0" inputmode="numeric"' : ''} value="${val}" placeholder="${esc(f.ph || '')}"></label>` };
+  return `<button class="btn ghost sm" style="align-self:flex-start" data-act="go" data-v="travaux">← Mes travaux</button>
+  <section class="hero"><p class="eyebrow">${esc(T.act)} · ${esc(T.qui)}</p><h1 style="margin:6px 0 8px">${esc(T.t)}</h1><p>Renseignez votre dépôt et cochez ce qui est fait : la note se calcule toute seule. Soyez honnête, les formateurs vérifient.</p></section>
+  ${c ? `<div class="note"><b>${esc(c.statut || 'Commentaire')} · formateur :</b> ${esc(c.texte || '')}</div>` : ''}
+  <section class="card" style="display:flex;flex-direction:column;gap:12px"><h2>1 · Mon dépôt</h2><div class="grid2" style="gap:12px">${T.champs.map(field).join('')}</div>
+    ${T.criteres.some(x => x.auto === 'cdc') ? `<p class="small muted">Cahier des charges : ${cdcCount(DB.liv.cdc)}/6 rubriques remplies dans « Ma cellule ».</p>` : ''}</section>
+  <section class="card" style="display:flex;flex-direction:column;gap:6px"><h2>2 · Ce qui est fait</h2>
+    ${T.criteres.map((x, i) => x.auto ? `<p class="small muted" style="margin:6px 0">⚙ ${esc(x.t)} · vérifié automatiquement (${x.pts} pts)</p>` : `<label class="row" style="gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)"><input type="checkbox" data-trc="${i}" ${st.c[i] ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px"><span style="flex:1">${esc(x.t)}</span><span class="pill">${x.pts} pts</span></label>`).join('')}</section>
+  <section class="card" style="display:flex;flex-direction:column;gap:6px;border:2px solid var(--gold)"><h2>3 · Ma note automatique</h2><div id="tr-score">${scoreBox(r)}</div></section>
+  <button class="btn gold wide" data-act="tr-send">Déposer mon travail</button>`;
+}
+function trUpdateScore() { const el = document.getElementById('tr-score'); if (el) el.innerHTML = scoreBox(trResult()) }
+function trSend() {
+  const T = TRAVAUX.find(x => x.id === S.tr.id), r = trResult();
+  if (T.champs.some(f => f.k === 'lien') && !String(S.tr.v.lien || '').trim()) { toast('Collez le lien de votre travail.'); return }
+  const d = { v: S.tr.v, c: S.tr.c, cdc: cdcCount(DB.liv.cdc), note: r.note, date: new Date().toISOString() }, k = 'trav:' + T.id, val = JSON.stringify(d);
+  DB.liv[k] = val; enqueue({ a: 'livrable', type: k, valeur: val });
+  if (T.id === 'a2' && S.tr.v.lien) { DB.liv.test = S.tr.v.lien; enqueue({ a: 'livrable', type: 'test', valeur: S.tr.v.lien }) }
+  if (T.id === 'a3' && S.tr.v.lien) { DB.liv.miniapp = S.tr.v.lien; enqueue({ a: 'livrable', type: 'miniapp', valeur: S.tr.v.lien }) }
+  save(); toast(`Déposé : ${r.note}/20 · ${r.mention}`); S.tr = null; go('travaux');
+}
+
+/* ---------- correction par les formateurs (projetable) ---------- */
+function vCorrections() {
+  const head = `<div class="row wrap" style="gap:10px"><div style="flex:1;min-width:220px"><p class="eyebrow">Travaux des cellules · corrigés automatiquement</p><h1 style="margin-top:6px">Les travaux déposés</h1></div>
+    <button class="btn sm ghost" data-act="f-refresh">${ic('refresh', 16)} Actualiser</button><button class="btn sm" data-act="proj">${document.body.classList.contains('proj') ? 'Quitter la projection' : 'Projeter'}</button></div>`;
+  if (!S.F) return head + `<section class="card"><p class="muted">${S.err ? esc(S.err) : 'Chargement…'}</p></section>`;
+  const F = S.F, proj = document.body.classList.contains('proj'), id = S.crA || 'a2', T = TRAVAUX.find(x => x.id === id);
+  const prof = {}; F.profs.forEach(p => prof[p.pseudo] = p);
+  const deps = F.livrables.filter(x => x.type === 'trav:' + id).map(x => { let d = {}; try { d = JSON.parse(x.valeur) } catch (e) {} return { x, d, r: noteTravail(T, d), p: prof[x.pseudo] || { prenom: x.pseudo, nom: '' }, c: comFor(F.commentaires, x.pseudo, 'trav:' + id) } });
+  const nProfs = F.profs.filter(p => !p.formateur).length, moy = deps.length ? Math.round(deps.reduce((a, b) => a + b.r.note, 0) / deps.length * 10) / 10 : null;
+  const tabs = `<div class="tabs">${TRAVAUX.map(t => `<button class="${t.id === id ? 'on' : ''}" data-act="cr-tab" data-v="${t.id}">${esc(t.act)} · ${esc(t.t)}</button>`).join('')}</div>`;
+  const kpis = `<div class="kpis"><div class="kpi"><span class="v">${deps.length}</span><span class="l">travaux déposés${id === 'a1' ? ' sur ' + nProfs + ' profs' : ''}</span></div>
+    <div class="kpi"><span class="v">${moy === null ? '—' : String(moy).replace('.', ',')}<small style="font-size:.5em"> /20</small></span><span class="l">note moyenne automatique</span></div>
+    <div class="kpi"><span class="v">${deps.filter(z => z.c && z.c.statut === 'Validé').length}</span><span class="l">validés par les formateurs</span></div></div>`;
+  const cells = CELLULES.map(c => ({ c, D: deps.filter(z => (z.x.cellule || z.p.cellule) === c) })).filter(g => g.D.length);
+  const card = z => { const extra = [z.d.v && z.d.v.niveau, z.d.v && z.d.v.type].filter(Boolean).join(' · '), L = z.d.v && z.d.v.lien;
+    return `<div class="card" style="display:flex;flex-direction:column;gap:6px;border-left:6px solid ${z.r.note >= 12 ? 'var(--green)' : z.r.note >= 8 ? 'var(--gold)' : 'var(--red)'}">
+      <div class="row wrap" style="gap:8px"><b style="flex:1;color:var(--ink);font-size:17px">${esc(z.p.prenom)} ${esc(z.p.nom || '')}${extra ? ` <span class="small muted">· ${esc(extra)}</span>` : ''}</b>
+        <b style="font-family:var(--display);font-size:26px;color:var(--ink)">${z.r.note}/20</b> ${mentionPill(z.r.mention)}</div>
+      ${/^https?:\/\//.test(L || '') ? `<a class="small" href="${esc(L)}" target="_blank" rel="noopener">Ouvrir le travail</a>` : ''}
+      ${retourHtml(z.r, true)}
+      ${z.c ? `<div class="note small"><b>${esc(z.c.statut || '')}</b>${z.c.texte ? ' · ' + esc(z.c.texte) : ''} <span class="muted">(${esc(z.c.par)})</span></div>` : ''}
+      ${proj ? '' : `<textarea id="cr-${esc(z.x.pseudo)}" rows="2" placeholder="Votre commentaire (facultatif)">${esc((z.c && z.c.texte) || '')}</textarea>
+      <div class="row wrap" style="gap:8px"><button class="btn sm" data-act="cr-com" data-v="${esc(z.x.pseudo)}" data-s="Validé">✓ Valider</button><button class="btn sm ghost" data-act="cr-com" data-v="${esc(z.x.pseudo)}" data-s="À revoir">À revoir</button></div>`}</div>` };
+  return head + tabs + kpis + (deps.length ? cells.map(g => `<section style="display:flex;flex-direction:column;gap:10px"><h2>${esc(g.c)}</h2><div class="g2f">${g.D.sort((a, b) => b.r.note - a.r.note).map(card).join('')}</div></section>`).join('')
+    : `<section class="card"><p class="muted">Aucun travail déposé pour ${esc(T.act)} pour le moment.</p></section>`);
 }
 
 function vAct(id) {
@@ -558,7 +657,7 @@ function vAct(id) {
         const alt = e.alt ? `<button class="btn sm ${mine ? 'gold' : 'ghost'}" style="align-self:flex-start" data-act="tache" data-v="${e.alt.tache}">${ic('book', 16)} ${esc(e.alt.label)}</button>` : '';
         return `<div class="row wrap" style="gap:8px">${mine ? alt + main : main + alt}</div>` })()}</div></div>` }).join('')}
   </section>
-  ${id === 'a2' || id === 'a3' ? `<button class="btn gold" data-act="go" data-v="cellule">Déposer mes livrables dans « Ma cellule »</button>` : ''}
+  <button class="btn gold wide" data-act="tr-open" data-v="${id}">${ic('check', 18)} Déposer le travail de l'activité ${a.n} (corrigé automatiquement)</button>
   ${x.p === 100 ? `<p class="note"><b>Bravo !</b> Activité terminée.</p>` : ''}`;
 }
 
@@ -681,6 +780,10 @@ function vCompte() {
   return `<div><p class="eyebrow">Mon compte</p><h1 style="margin-top:6px">${esc(P.prenom)} ${esc(P.nom)}</h1><p class="muted">@${esc(P.pseudo)} · ${esc(P.cellule)}</p></div>
   <section class="card" style="display:flex;flex-direction:column;gap:10px"><p><b>Disciplines :</b> ${esc(P.disciplines || '—')}</p><p><b>Niveaux :</b> ${esc(P.niveaux || '—')}</p>
     <label class="small row" style="gap:8px"><input type="checkbox" data-act="referent" ${P.referent ? 'checked' : ''}> Je suis le référent de ma cellule</label></section>
+  ${P.formateur ? `<section class="card row wrap" style="gap:12px;align-items:center"><span class="pill gold">Compte formateur</span><span class="small muted" style="flex:1">Vous avez accès au suivi de tous les profs.</span><button class="btn sm" data-act="go" data-v="formateur">Espace formateur</button></section>`
+  : `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Vous êtes invité comme formateur ?</h2><p class="small muted">Entrez le code d'invitation reçu pour transformer ce compte en compte formateur.</p>
+    <label class="form">Code d'invitation<input id="f-upcode" autocomplete="off" value="${esc(S.invite || '')}" placeholder="F-XXXXXX"></label>${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
+    <button class="btn" data-act="f-upgrade" ${S.busy ? 'disabled' : ''}>Activer l'accès formateur</button></section>`}
   <section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start"><h2>Partager Kennedy 3.0</h2><p class="small muted">Faites scanner ce code à un collègue.</p><div class="qr" id="qr-app"></div>
     <button class="btn ghost sm" data-act="share">Copier le lien</button></section>
   <section class="card row wrap"><button class="btn ghost" data-act="theme">Changer de thème</button><button class="btn ghost" data-act="logout">Me déconnecter</button></section>`;
@@ -690,11 +793,12 @@ function vCompte() {
 function vFormateur() {
   if (!S.F) return `<div><p class="eyebrow">Réservé aux formateurs</p><h1 style="margin-top:6px">Espace formateur</h1></div>
   <section class="card" style="display:flex;flex-direction:column;gap:12px">
-    <label class="form">Code formateur<input id="f-code" type="password" value="${esc(sessionCode())}"></label>
+    <label class="form">Code administrateur<input id="f-code" type="password" value="${esc(sessionCode())}"></label>
+    <p class="small muted">Les formateurs invités se connectent avec leur compte (pseudo et code secret).</p>
     ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
     <button class="btn gold" data-act="f-login" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Chargement…' : 'Accéder au suivi'}</button></section>
   <button class="btn ghost" data-act="go" data-v="${DB.profil ? 'home' : 'auth'}">Retour</button>`;
-  const F = S.F, profs = F.profs, AV = {};
+  const F = S.F, profs = F.profs.filter(p => !p.formateur), forms = F.profs.filter(p => p.formateur), AV = {};
   F.avancement.forEach(x => { (AV[x.pseudo] = AV[x.pseudo] || {})[x.cle] = x.valeur });
   const LI = {}; F.livrables.forEach(x => { (LI[x.pseudo] = LI[x.pseudo] || {})[x.type] = x.valeur });
   const done = (p, k) => !!(AV[p] && AV[p][k]);
@@ -704,9 +808,9 @@ function vFormateur() {
   const cells = CELLULES.map(c => ({ c, P: profs.filter(p => p.cellule === c) })).filter(x => x.P.length);
   const bars = (rows) => rows.map(([l, v]) => `<div class="chart-row"><span>${esc(l)}</span><div class="bar"><i style="width:${v}%;background:${v >= 80 ? 'var(--green)' : v >= 40 ? 'var(--gold)' : 'var(--red)'}"></i></div><b>${v}%</b></div>`).join('');
   return `<div class="row wrap"><div style="flex:1"><p class="eyebrow">Suivi en direct</p><h1 style="margin-top:6px">Espace formateur</h1></div>
-    <button class="btn sm ghost" data-act="f-refresh">Actualiser</button><button class="btn sm ghost" data-act="f-out">Quitter</button></div>
+    <button class="btn sm ghost" data-act="f-refresh">Actualiser</button>${DB.profil && DB.profil.formateur ? '' : '<button class="btn sm ghost" data-act="f-out">Quitter</button>'}<button class="btn sm gold" data-act="go" data-v="tableau">Tableau de bord</button></div>
   <div class="grid2">
-    <section class="card"><p class="eyebrow">Inscrits</p><h1 style="margin-top:6px">${profs.length}</h1><p class="small muted">${cells.length} cellule(s)</p></section>
+    <section class="card"><p class="eyebrow">Profs inscrits</p><h1 style="margin-top:6px">${profs.length}</h1><p class="small muted">${cells.length} cellule(s)${forms.length ? ' · formateurs : ' + forms.map(p => esc(p.prenom)).join(', ') : ''}</p></section>
     <section class="card"><p class="eyebrow">Missions du parcours</p><h1 style="margin-top:6px">${avg(profs.map(p => Math.round(miss.filter(m => done(p.pseudo, 'mission:' + m.id)).length / miss.length * 100)))}%</h1><p class="small muted">en moyenne</p></section>
     <section class="card"><p class="eyebrow">Tests de positionnement</p><h1 style="margin-top:6px">${profs.filter(p => (LI[p.pseudo] || {}).test).length}</h1><p class="small muted">liens déposés</p></section>
   </div>
@@ -723,6 +827,14 @@ function vFormateur() {
       <td class="hide-sm">${m}%</td><td>${lk(l.test)}</td><td>${lk(l.miniapp)}</td></tr>` }).join('')}</table></div>
     ${(() => { const c = F.livrables.filter(z => z.cellule === x.c && z.type === 'cdc'); if (!c.length) return '<p class="small muted">Cahier des charges : pas encore déposé.</p>'; let o = {}; try { o = JSON.parse(c[c.length - 1].valeur) } catch (e) {} return `<div class="note small"><b>Cahier des charges</b> · modules : ${esc((o.modules || []).join(', ') || '—')}<br>Priorités : ${esc(o.prio || '—')}<br>Échéancier : ${esc(o.echeancier || '—')}</div>` })()}
   </section>`).join('')}
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Les formateurs</h2>
+    ${forms.map(p => `<div class="row wrap" style="gap:8px"><b style="flex:1;color:var(--ink)">${esc(p.prenom)} ${esc(p.nom)}</b>${p.admin ? '<span class="pill gold">Formateur principal</span>' : '<span class="pill">Formateur</span>'}${F.admin && !p.admin ? `<button class="btn sm ghost" data-act="f-retirer" data-v="${esc(p.pseudo)}" data-n="${esc(p.prenom)}">Retirer</button>` : ''}</div>`).join('') || '<p class="small muted">—</p>'}
+    ${F.admin ? `<div style="border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:10px"><h3>Inviter un formateur</h3>
+      <p class="small muted">Vous seul pouvez inviter. L'invitation sert une seule fois : la personne crée elle-même son compte avec le lien.</p>
+      <div class="row wrap" style="gap:8px"><input id="f-invnom" placeholder="Nom de la personne (ex. Mme Diop Aminata Mbaye)" style="flex:1;min-width:200px"><button class="btn gold" data-act="f-invite">Créer l'invitation</button></div>
+      ${S.inv ? `<div class="note" style="display:flex;flex-direction:column;gap:8px;align-items:flex-start"><b>Invitation pour ${esc(S.inv.pour)} · code ${esc(S.inv.code)}</b><span class="small" style="word-break:break-all">${esc(invUrl(S.inv.code))}</span><div class="qr" id="qr-inv"></div><button class="btn sm" data-act="f-inv-copy">Copier le lien</button></div>` : ''}
+      ${(F.invitations || []).length ? `<div style="overflow:auto"><table class="t"><tr><th>Pour</th><th>Code</th><th>État</th></tr>${F.invitations.map(i => `<tr><td>${esc(i.pour)}</td><td>${esc(i.code)}</td><td>${i.par ? 'Utilisée par @' + esc(i.par) : 'En attente'}</td></tr>`).join('')}</table></div>` : ''}</div>` : ''}
+  </section>
   <section class="card row wrap" style="gap:12px;align-items:center"><div style="flex:1;min-width:200px"><h2>Auto-évaluations</h2><p class="small muted">Le tableau de bord en direct, à projeter.</p></div><button class="btn gold" data-act="go" data-v="tableau">${ic('chart', 18)} Tableau de bord</button></section>
   ${(F.avis || []).length ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Avis de sortie (anonymes)</h2>${F.avis.map(x => `<div class="note small"><b>${esc(x.cellule || '')}</b>${x.utile ? `<br>Le plus utile : ${esc(x.utile)}` : ''}${x.ameliorer ? `<br>À améliorer : ${esc(x.ameliorer)}` : ''}</div>`).join('')}</section>` : ''}`;
 }
@@ -732,7 +844,7 @@ function sessionCode() { try { return sessionStorage.getItem('k3_fcode') || '' }
 function render() {
   const logged = !!DB.profil;
   if (!logged && !['auth', 'formateur', 'autoeval', 'tableau'].includes(S.v)) S.v = 'auth';
-  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur, autoeval: () => vAutoeval(S.p), tableau: vTableau };
+  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur, autoeval: () => vAutoeval(S.p), tableau: vTableau, travaux: vTravaux, travail: () => vTravail(S.p), corrections: vCorrections };
   $('#app').innerHTML = (views[S.v] || vHome)();
   const bb = $('#backbtn'), atRoot = (logged && S.v === 'home') || (!logged && S.v === 'auth');
   bb.hidden = atRoot; bb.innerHTML = ic('back', 22);
@@ -742,7 +854,8 @@ function render() {
     ${logged ? `<button class="hb" data-act="go" data-v="compte" title="Mon compte" aria-label="Mon compte" style="background:#E0B54A;border-color:#E0B54A;color:#0F2552;font-weight:900;font-family:var(--display)">${esc((DB.profil.prenom || '?').charAt(0).toUpperCase())}</button>
     <button class="hb" data-act="logout" title="Me déconnecter" aria-label="Me déconnecter">${ic('logout', 20)}</button>` : ''}</span>`;
   const nav = $('#nav'); nav.hidden = !logged;
-  if (logged) nav.firstElementChild.innerHTML = [['home', 'home', 'Accueil'], ['jour', 'day', 'Journée'], ['atelier', 'spark', 'Atelier'], ['parcours', 'route', 'Parcours'], ['cellule', 'team', 'Cellule']]
+  if (logged) nav.firstElementChild.innerHTML = (DB.profil.formateur ? [['home', 'home', 'Accueil'], ['tableau', 'chart', 'Tableau'], ['corrections', 'check', 'Travaux'], ['formateur', 'team', 'Suivi'], ['atelier', 'spark', 'Atelier']]
+    : [['home', 'home', 'Accueil'], ['jour', 'day', 'Journée'], ['atelier', 'spark', 'Atelier'], ['parcours', 'route', 'Parcours'], ['cellule', 'team', 'Cellule']])
     .map(([v, i, l]) => `<button class="${S.v === v || (v === 'atelier' && S.v === 'tache') ? 'on' : ''}" data-act="go" data-v="${v}">${ic(i, 22)}<span>${l}</span></button>`).join('');
   afterRender();
 }
@@ -751,13 +864,19 @@ function afterRender() {
   if (S.v === 'evaluations' || S.v === 'tableau') mk('qr-ae', aeUrl('entree'));
   if (S.v === 'tableau' && !S.st && !S.stLoading) loadStats();
   if (S.v === 'compte') mk('qr-app', appUrl());
+  if (S.v === 'formateur' && S.inv) mk('qr-inv', invUrl(S.inv.code));
   if (S.v === 'cellule' && !S.cel && apiOn() && !S.celLoading) loadCellule();
+  if ((S.v === 'formateur' || S.v === 'corrections') && !S.F && !S.busy && !S.err && DB.profil && DB.profil.formateur) loadF('');
 }
 const appUrl = () => location.href.split('#')[0].split('?')[0];
+const invUrl = c => appUrl() + '?invite=' + encodeURIComponent(c);
 
 /* ======================= ACTIONS ======================= */
 function aeDraft() { if (!S.ae) return; DB.aeDraft = DB.aeDraft || {}; DB.aeDraft[S.ae.ph] = Object.assign({}, S.ae); save() }
-document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.ae; if (k && S.ae) { S.ae[k] = e.target.value; aeDraft() } });
+document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.ae; if (k && S.ae) { S.ae[k] = e.target.value; aeDraft() }
+  const t = e.target.dataset && e.target.dataset.tr; if (t && S.tr) { S.tr.v[t] = e.target.value; trUpdateScore() } });
+document.addEventListener('change', e => { const t = e.target.dataset && e.target.dataset.tr; if (t && S.tr) { S.tr.v[t] = e.target.value; trUpdateScore() }
+  const c = e.target.dataset && e.target.dataset.trc; if (c !== undefined && S.tr) { S.tr.c[c] = e.target.checked; trUpdateScore() } });
 document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.ae; if (k && S.ae) { S.ae[k] = e.target.value; aeDraft() } });
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && document.body.classList.contains('proj')) { document.body.classList.remove('proj'); render() } });
 document.addEventListener('click', async e => {
@@ -770,6 +889,18 @@ document.addEventListener('click', async e => {
   if (a === 'ae-set') { S.ae[b.dataset.k] = v; aeDraft(); const y = window.scrollY; render(); window.scrollTo(0, y); return }
   if (a === 'ae-note') { S.ae.note = +v; aeDraft(); const y = window.scrollY; render(); window.scrollTo(0, y); return }
   if (a === 'ae-send') return aeSend();
+  if (a === 'tr-open') { S.tr = null; return go('travail', v) }
+  if (a === 'tr-send') return trSend();
+  if (a === 'cr-tab') { S.crA = v; return render() }
+  if (a === 'cr-com') { const t = document.getElementById('cr-' + v), texte = t ? t.value.trim() : '';
+    if (!apiOn()) { toast('Disponible quand le serveur est branché.'); return }
+    b.disabled = true; const r = await api('commenter', Object.assign(auth(), { cible: v, travail: 'trav:' + (S.crA || 'a2'), statut: b.dataset.s, texte }));
+    if (!r.ok) { toast(r.erreur || 'Impossible.'); b.disabled = false; return } toast(b.dataset.s === 'Validé' ? 'Travail validé.' : 'Envoyé : à revoir.'); return loadF('') }
+  if (a === 'f-invite') { const nm = ($('#f-invnom') || {}).value || ''; if (!nm.trim()) { toast('Indiquez le nom de la personne invitée.'); return }
+    const r = await api('inviter', Object.assign(auth(), { pour: nm.trim() })); if (!r.ok) { toast(r.erreur || 'Impossible.'); return }
+    S.inv = { code: r.code, pour: nm.trim() }; return loadF('') }
+  if (a === 'f-inv-copy') { copy(invUrl(S.inv.code)); return }
+  if (a === 'f-retirer') { if (!confirm('Retirer le rôle de formateur à ' + b.dataset.n + ' ?')) return; const r = await api('retirerFormateur', Object.assign(auth(), { cible: v })); toast(r.ok ? 'Rôle retiré.' : (r.erreur || 'Impossible.')); return loadF('') }
   if (a === 'st-refresh') { S.st = null; render(); return loadStats() }
   if (a === 'st-ph') { S.stPh = v; return render() }
   if (a === 'proj') { const on = !document.body.classList.contains('proj'); document.body.classList.toggle('proj', on);
@@ -813,6 +944,11 @@ document.addEventListener('click', async e => {
   if (a === 'theme') { const r = document.documentElement, cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); r.dataset.theme = cur === 'dark' ? 'light' : 'dark'; DB.theme = r.dataset.theme; save(); return }
   if (a === 'f-login') { const c = $('#f-code').value.trim(); try { sessionStorage.setItem('k3_fcode', c) } catch (e2) {} return loadF(c) }
   if (a === 'f-refresh') return loadF(sessionCode());
+  if (a === 'f-upgrade') { const c = ($('#f-upcode') || {}).value || ''; if (!c.trim()) { S.err = "Entrez le code d'invitation."; return render() }
+    if (!apiOn()) { DB.profil.formateur = true; save(); toast('Compte formateur activé (mode démonstration).'); return go('formateur') }
+    S.busy = true; S.err = ''; render(); const r = await api('devenirFormateur', Object.assign(auth(), { codeFormateur: c.trim() })); S.busy = false;
+    if (!r.ok) { if (r.session) return sessionLost(); S.err = r.erreur || 'Impossible.'; return render() }
+    DB.profil = r.profil; save(); toast('Compte formateur activé.'); return go('formateur') }
   if (a === 'f-out') { S.F = null; try { sessionStorage.removeItem('k3_fcode') } catch (e2) {} return render() }
 });
 document.addEventListener('input', e => {
@@ -828,14 +964,19 @@ async function signup() {
   const P = { prenom: g('#f-prenom').trim(), nom: g('#f-nom').trim(), cellule: g('#f-cellule'), disciplines: g('#f-disc').trim(),
     niveaux: [...document.querySelectorAll('[name=niv]:checked')].map(i => i.value).join(','), pseudo: g('#f-pseudo').trim().toLowerCase().replace(/\s+/g, '') };
   const pin = g('#f-pin').trim();
+  const isF = !!($('#f-isf') && $('#f-isf').checked), fcode = g('#f-fcode').trim();
+  S.su = Object.assign({}, P, { formateur: isF });
+  if (isF && !fcode) { S.err = "Entrez le code d'invitation."; return render() }
+  if (isF) { P.formateur = true; P.codeFormateur = fcode }
+  S.su = Object.assign({}, P, { codeFormateur: '' });
   if (!P.prenom || !P.nom || !P.cellule) { S.err = 'Prénom, nom et cellule sont obligatoires.'; return render() }
   if (!/^[a-z0-9._-]{3,20}$/.test(P.pseudo)) { S.err = 'Pseudo : 3 à 20 lettres, chiffres, point ou tiret.'; return render() }
   if (!/^\d{4}$/.test(pin)) { S.err = 'Le code secret doit avoir 4 chiffres.'; return render() }
-  if (!apiOn()) { DB.profil = P; DB.jeton = 'local'; save(); toast('Compte créé sur cet appareil (mode démonstration).'); return go('home') }
+  if (!apiOn()) { delete P.codeFormateur; DB.profil = P; DB.jeton = 'local'; save(); toast('Compte créé sur cet appareil (mode démonstration).'); return go('home') }
   S.busy = true; S.err = ''; render();
   const r = await api('inscrire', Object.assign({ pin }, P)); S.busy = false;
   if (!r.ok) { S.err = r.erreur || 'Inscription impossible.'; return render() }
-  DB.profil = r.profil; DB.jeton = r.jeton; save(); flush(); toast('Bienvenue dans Kennedy 3.0 !'); go('home');
+  S.su = null; DB.profil = r.profil; DB.jeton = r.jeton; save(); flush(); toast('Bienvenue dans Kennedy 3.0 !'); go('home');
 }
 async function login() {
   const pseudo = ($('#f-pseudo').value || '').trim().toLowerCase(), pin = ($('#f-pin').value || '').trim();
@@ -843,7 +984,7 @@ async function login() {
   S.busy = true; S.err = ''; render();
   const r = await api('connexion', { pseudo, pin }); S.busy = false;
   if (!r.ok) { S.err = r.erreur || 'Connexion impossible.'; return render() }
-  DB.profil = r.profil; DB.jeton = r.jeton; DB.av = (r.donnees && r.donnees.avancement) || {}; DB.liv = (r.donnees && r.donnees.livrables) || {}; DB.queue = []; save();
+  DB.profil = r.profil; DB.jeton = r.jeton; DB.av = (r.donnees && r.donnees.avancement) || {}; DB.liv = (r.donnees && r.donnees.livrables) || {}; DB.com = (r.donnees && r.donnees.commentaires) || []; DB.queue = []; save();
   toast('Content de vous revoir, ' + r.profil.prenom + ' !'); go('home');
 }
 function logout(silent) { if (!silent && !confirm('Se déconnecter de cet appareil ?')) return; const th = DB.theme; DB = { av: {}, liv: {}, vars: {}, queue: [], theme: th }; save(); S.cel = null; S.F = null; try { sessionStorage.removeItem('k3_fcode') } catch (e) {} go('auth'); toast('Vous êtes déconnecté.') }
@@ -855,7 +996,9 @@ async function loadCellule() {
 }
 async function loadF(code) {
   S.busy = true; S.err = ''; render();
-  const r = await api('formateur', { code }); S.busy = false;
+  const isF = DB.profil && DB.profil.formateur && DB.jeton && DB.jeton !== 'local';
+  if (DB.profil && DB.profil.formateur && !apiOn()) { S.busy = false; S.err = "Le suivi des profs a besoin du serveur."; return render() }
+  const r = await api('formateur', isF ? auth() : { code }); S.busy = false;
   if (!r.ok) { S.err = r.erreur || 'Accès refusé.'; S.F = null } else S.F = r;
   render();
 }
@@ -864,11 +1007,12 @@ async function loadF(code) {
 if (DB.theme) document.documentElement.dataset.theme = DB.theme;
 if (!navigator.onLine) $('#offline').hidden = false;
 S.v = DB.profil ? 'home' : 'auth'; S.depth = 0;
-(() => { const q = new URLSearchParams(location.search); if (q.get('eval')) { S.v = 'autoeval'; S.p = q.get('eval') === 'sortie' ? 'sortie' : 'entree' } else if (q.has('tableau')) S.v = 'tableau' })();
+(() => { const q = new URLSearchParams(location.search); if (q.get('eval')) { S.v = 'autoeval'; S.p = q.get('eval') === 'sortie' ? 'sortie' : 'entree' } else if (q.has('tableau')) S.v = 'tableau';
+  if (q.get('invite')) { S.invite = q.get('invite').toUpperCase(); if (DB.profil) S.v = 'compte'; else { S.v = 'auth'; S.auth = 'signup'; S.su = { formateur: true } } } })();
 try { history.replaceState({ v: S.v, p: S.p }, '') } catch (e) {}
 render(); setTimeout(flush, 1200);
 setInterval(() => { if (S.v === 'home' || S.v === 'jour') render() }, 60000);
-setInterval(() => { if (S.v === 'formateur' && S.F) loadF(sessionCode()) }, 45000);
+setInterval(() => { if ((S.v === 'formateur' || S.v === 'corrections') && S.F && !document.querySelector('textarea:focus')) loadF(sessionCode()) }, 45000);
 setInterval(() => { if (S.v === 'tableau' && document.visibilityState !== 'hidden') loadStats() }, 15000);
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   const hadCtl = !!navigator.serviceWorker.controller;
