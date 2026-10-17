@@ -9,9 +9,29 @@ const CELLULES = ["A1 · Maths et sciences", "A2 · Français", "A3 · Langues v
 const NIVEAUX = ["6e", "5e", "4e", "3e"];
 const PRECEDENTE = { "6e": "CM2", "5e": "6e", "4e": "5e", "3e": "4e" };
 
+/* ---------- auto-évaluation d'entrée et de sortie (dans l'application) ---------- */
+const AUTOEVAL = {
+  niveaux: ["Je ne sais pas faire", "Avec beaucoup d'aide", "Avec un peu d'aide", "Seul(e)"],
+  objectifs: ["Prof automatisé", "Évaluations Google Forms", "Test de positionnement", "Application de cellule"],
+  competences: [
+    { o: 1, t: "Écrire une demande précise à Claude (rôle, contexte, tâche, format, contraintes)", c: "Écrire une demande précise" },
+    { o: 1, t: "Créer un projet Claude et y déposer mes documents", c: "Créer mon projet Claude" },
+    { o: 1, t: "Connecter Google Agenda et y placer mon emploi du temps", c: "Connecter Google Agenda" },
+    { o: 1, t: "Produire résumés, cartes mentales et flashcards à partir de mes programmes", c: "Résumés, cartes, flashcards" },
+    { o: 1, t: "Expliquer comment automatiser le cahier de textes dans PLANETE 3.0", c: "Automatiser PLANETE 3.0" },
+    { o: 2, t: "Générer des questions à partir des compétences exigibles", c: "Générer des questions" },
+    { o: 2, t: "Transformer des questions validées en Google Form avec Apps Script", c: "Google Form par Apps Script" },
+    { o: 3, t: "Contribuer au test de positionnement de ma cellule", c: "Test de positionnement" },
+    { o: 4, t: "Créer une mini-application avec Claude (ou une carte mentale, une BD avec ChatGPT)", c: "Créer une mini-appli" },
+    { o: 4, t: "Rédiger le cahier des charges d'une application", c: "Cahier des charges" }
+  ],
+  ia: ["Jamais", "Parfois", "Souvent"],
+  projet: ["Oui", "Pas encore, j'ai besoin d'aide", "Non"]
+};
+
 const JOUR = { date: "2026-10-20", label: "Mardi 20 octobre 2026", lieu: "Salle multimédia du CEM J.F. Kennedy" };
 const PROGRAMME = [
-  { h: "09:00", f: "09:20", t: "Accueil et auto-évaluation d'entrée", d: "Scanner le QR code d'entrée, s'installer, vérifier ses comptes", go: "evaluations" },
+  { h: "09:00", f: "09:20", t: "Accueil et auto-évaluation d'entrée", d: "Auto-évaluation à faire de préférence avant le jour J (sinon à l'accueil), s'installer, vérifier ses comptes", go: "evaluations" },
   { h: "09:20", f: "09:45", t: "Cérémonie d'ouverture", d: "Autorités académiques, administration" },
   { h: "09:45", f: "10:15", t: "Du Google Forms à l'IA", d: "Bilan 2025-2026, les quatre objectifs, le kit de chaque prof", go: "objectifs" },
   { h: "10:15", f: "10:45", t: "Pause petit-déjeuner", pause: true },
@@ -19,7 +39,7 @@ const PROGRAMME = [
   { h: "11:15", f: "12:15", t: "Activité 1 · Mon projet Claude", d: "Individuel", go: "act:a1" },
   { h: "12:15", f: "13:15", t: "Activité 2 · Le test de positionnement", d: "Par cellule, un prof par niveau", go: "act:a2" },
   { h: "13:15", f: "14:15", t: "Pause déjeuner", pause: true },
-  { h: "14:15", f: "15:15", t: "Activité 3 · L'application de ma cellule", d: "Par cellule", go: "act:a3" },
+  { h: "14:15", f: "15:15", t: "Activité 3 · L'application de ma cellule", d: "Par cellule · Français, Langues et HG : carte mentale et bande dessinée avec ChatGPT (Mme Diop Aminata Mbaye)", go: "act:a3" },
   { h: "15:15", f: "15:45", t: "Restitution des cellules", d: "5 minutes par cellule + questions", go: "cellule" },
   { h: "15:45", f: "16:00", t: "Évaluation de sortie et clôture", d: "Scanner le QR code de sortie", go: "evaluations" }
 ];
@@ -72,14 +92,14 @@ const ACTIVITES = [
   },
   {
     id: "a3", n: 3, titre: "L'application de ma cellule", horaire: "14h15 – 15h15", duree: "60 min", modalite: "Par cellule, sur le poste du référent", couleur: "gold",
-    objectif: "Une première mini-application aujourd'hui, puis le cahier des charges de l'application complète, sur le modèle de ProfDeMaths 2.0.",
-    livrable: "La mini-application et son lien, le cahier des charges, le référent",
+    objectif: "Une première mini-application aujourd'hui, puis le cahier des charges de l'application complète, sur le modèle de ProfDeMaths 2.0. Cellules Français, Langues et Histoire-Géographie : la première production est une carte mentale illustrée et un cours en bande dessinée, avec ChatGPT, atelier animé par Mme Diop Aminata Mbaye.",
+    livrable: "La mini-application (ou la carte mentale et la BD en Français, Langues et HG) et son lien, le cahier des charges, le référent",
     etapes: [
       { t: "Désigner le rapporteur et le référent", m: 5, d: "Le référent coche « Je suis référent » dans Mon compte." },
-      { t: "Rédiger ensemble la demande", m: 5, d: "Classe, contenu, règles, « utilisable sur tablette ».", tache: "miniapp" },
-      { t: "Générer la mini-application", m: 10, d: "Sur le poste du référent, une seule conversation.", tache: "miniapp" },
-      { t: "Tester et demander 3 améliorations", m: 10, d: "Sur tablette, une amélioration à la fois." },
-      { t: "Déposer le lien de partage", m: 5, d: "Dans « Ma cellule »." },
+      { t: "Rédiger ensemble la demande", m: 5, d: "Classe, contenu, règles, « utilisable sur tablette ».", tache: "miniapp", alt: { cellules: ["A2", "A3", "A4"], tache: "carte", label: "Carte mentale avec ChatGPT" } },
+      { t: "Générer la mini-application", m: 10, d: "Sur le poste du référent, une seule conversation. Français, Langues et HG (avec Mme Diop) : dans ChatGPT, la carte mentale, puis la BD (scénario, personnages, planches).", tache: "miniapp", alt: { cellules: ["A2", "A3", "A4"], tache: "bd", label: "BD avec ChatGPT" } },
+      { t: "Tester et demander 3 améliorations", m: 10, d: "Sur tablette, une amélioration à la fois. Carte mentale et BD : exactitude du contenu, lisibilité des bulles, cohérence des personnages." },
+      { t: "Déposer le lien de partage", m: 5, d: "Dans « Ma cellule ». Carte mentale et BD : l'image ou le lien de la présentation Google Slides." },
       { t: "Remplir le cahier des charges", m: 10, d: "Dans « Ma cellule », en s'inspirant de la méthode ProfDeMaths." },
       { t: "Demander à Claude le plan de l'application", m: 10, d: "À partir du cahier des charges.", tache: "plan-app" },
       { t: "Fixer l'échéancier", m: 5, d: "Qui fait quoi jusqu'au 3 novembre." }
@@ -111,7 +131,8 @@ const CH = {
   type_app: { label: "Type d'application", ph: "quiz auto-corrigé, flashcards, frise, calculateur…" },
   contenu: { label: "Contenu", ph: "Les questions, mots, dates ou barèmes à utiliser", type: "area", opt: true },
   cdc: { label: "Cahier des charges", ph: "Collez le cahier des charges de la cellule", type: "area" },
-  theme: { label: "Thème", ph: "Révision du chapitre Pythagore" }
+  theme: { label: "Thème", ph: "Révision du chapitre Pythagore" },
+  planches: { label: "Nombre de planches", type: "number", def: 4 }
 };
 
 const TACHES = [
@@ -228,6 +249,68 @@ Vocabulaire simple, exemples tirés de la vie au Sénégal. Indique la compéten
 `Crée une affiche de révision A4 sur « ${v.theme} » pour des élèves de ${v.niveau} : un titre, 4 encadrés (définition, propriété, méthode, exemple), des couleurs sobres et lisibles de loin. Donne-la en format prêt à imprimer.` }],
     etapes: ["Envoyer la demande.", "Avec le connecteur Canva : « Crée cette affiche dans Canva »."],
     verifier: ["Lisible à 3 mètres.", "Aucune faute."]
+  },
+  {
+    id: "carte", g: "cours", t: "Ma carte mentale illustrée (avec ChatGPT)", court: "Carte mentale illustrée",
+    d: "Toute la leçon sur une seule image : la notion au centre, les branches en couleurs, des exemples sénégalais et une illustration de la classe. Pour les cellules Français, Langues et Histoire-Géographie.",
+    besoin: "Un compte ChatGPT (chatgpt.com) · création d'images limitée sur l'offre gratuite : une conversation par cellule",
+    anim: "Mme Diop Aminata Mbaye",
+    outil: { url: "https://chatgpt.com/", label: "Ouvrir ChatGPT" },
+    exemple: { img: "ex_carte_mentale", legende: "Exemple réalisé avec ChatGPT par Mme Diop Aminata Mbaye : « La classe des mots », 6e, CEM J.F. Kennedy." },
+    champs: ["discipline", "niveau", "lecon", "contenu"],
+    prompts: v => [
+      { titre: "Demande 1 · le contenu de la carte", texte:
+`Tu es professeur de ${v.discipline} en ${v.niveau} au CEM J.F. Kennedy (Dakar). Prépare le contenu d'une carte mentale sur « ${v.lecon} ».
+${v.contenu ? "Contenu de la leçon :\n" + v.contenu + "\n" : "Je colle ci-dessous le résumé de la leçon (manuel ou cahier de textes) :\n[coller ici]\n"}
+Donne, en texte seulement :
+- le titre central et un sous-titre court ;
+- 6 à 9 branches numérotées : pour chacune, le titre, une définition d'une ligne, 3 à 5 exemples, un exemple en phrase avec l'explication entre parenthèses ;
+- un encadré « Comment reconnaître… ? » (une méthode en questions) ;
+- un encadré « À retenir » (3 points) ;
+- une phrase d'exemple analysée, avec des noms et des lieux sénégalais (Dakar, Mariama, Fatou…).
+Contenu exact, conforme au programme sénégalais, phrases courtes. N'image rien : attends ma validation.` },
+      { titre: "Demande 2 · l'image, après validation", texte:
+`Le contenu est validé. Crée la carte mentale en une seule image, format paysage, très lisible :
+- au centre, le titre dans un nuage, et une illustration d'une professeure sénégalaise avec ses élèves en tenue scolaire, en classe ;
+- autour, les branches numérotées, chacune dans un cadre de couleur différente relié au centre, avec une petite icône ;
+- les encadrés « Comment reconnaître… ? », « À retenir » et la phrase d'exemple ;
+- fond blanc, style illustration éducative, texte en français grand et net, sans faute ; reprends mot pour mot le contenu validé.` }
+    ],
+    etapes: ["Ouvrir chatgpt.com sur le poste du référent (une conversation pour la cellule).", "Envoyer la demande 1 et vérifier le contenu avec la cellule : définitions, exemples, analyse de la phrase.", "Envoyer la demande 2.", "Relire chaque mot de l'image ; si besoin : « Corrige la branche 4 : … ».", "Télécharger l'image : à projeter, à imprimer en A3 pour l'affichage, ou à envoyer aux élèves.", "Déposer l'image ou son lien dans « Ma cellule »."],
+    verifier: ["Toutes les notions de la leçon sont présentes, sans erreur.", "Aucune faute d'orthographe dans l'image (relire lettre par lettre).", "Lisible projetée au tableau et imprimée.", "Aucune photo ni nom d'élève réel."]
+  },
+  {
+    id: "bd", g: "cours", t: "Mon cours en bande dessinée (avec ChatGPT)", court: "Cours en BD",
+    d: "La leçon racontée par des personnages sénégalais, en vraies images dessinées par ChatGPT, à projeter ou à imprimer. Pour les cellules Français, Langues et Histoire-Géographie.",
+    besoin: "Un compte ChatGPT (chatgpt.com) · la création d'images est limitée sur l'offre gratuite : une conversation par cellule, sur le poste du référent",
+    anim: "Mme Diop Aminata Mbaye",
+    outil: { url: "https://chatgpt.com/", label: "Ouvrir ChatGPT" },
+    exemple: { img: "ex_bd", legende: "Exemple réalisé avec ChatGPT par Mme Diop Aminata Mbaye : « La classe des mots : qui est qui dans la phrase ? », 6e, CEM J.F. Kennedy." },
+    champs: ["discipline", "niveau", "lecon", "contenu", "planches"],
+    prompts: v => [
+      { titre: "Demande 1 · le scénario", texte:
+`Tu es scénariste de bande dessinée éducative. Transforme ma leçon de ${v.discipline} en ${v.niveau} (collège, Sénégal) sur « ${v.lecon} » en bande dessinée.
+${v.contenu ? "Contenu de la leçon :\n" + v.contenu + "\n" : "Je colle ci-dessous le résumé de la leçon (manuel ou cahier de textes) :\n[coller ici]\n"}
+Personnages sénégalais, toujours les mêmes :
+- Awa (13 ans, curieuse, tresses, tenue scolaire bleue) et Moussa (14 ans, blagueur, maillot vert des Lions) : deux élèves du CEM ;
+- Mame Diarra : la grand-mère conteuse, en boubou jaune et foulard, qui relie la leçon à la vie d'autrefois ;
+- Mme Sarr : la professeure, en ensemble wax, qui reprend l'essentiel.
+Décors du Sénégal adaptés à la leçon : cour de l'école, quartier de Dakar, marché, car rapide, Gorée, village du Saloum…
+Découpe la leçon en ${v.planches} planches de 4 cases. Pour chaque case : le décor, l'action, les dialogues (bulles de 12 mots maximum, français correct ; un mot de wolof possible, toujours traduit).
+Chaque planche fait passer une notion ; la dernière case récapitule l'essentiel.
+${/histoire|géo/i.test(v.discipline) ? "Les dates, les lieux et les personnages historiques doivent être exacts ; signale toute scène inventée pour le récit." : "Les règles et les exemples de la leçon doivent être exacts ; la BD illustre, elle ne simplifie pas jusqu'à l'erreur."}
+Pas de caricature, des personnages valorisants. Termine par 5 questions de compréhension avec leurs réponses.
+N'image rien pour l'instant : attends ma validation du scénario.` },
+      { titre: "Demande 2 · la fiche des personnages", texte:
+`Le scénario est validé. Crée d'abord une image « fiche des personnages » : Awa, Moussa, Mame Diarra et Mme Sarr, debout côte à côte, de face, avec leur nom écrit dessous.
+Style : bande dessinée africaine contemporaine, traits nets, couleurs vives, fond blanc. Visages et vêtements bien reconnaissables : ce sont ces personnages qui apparaîtront dans toutes les planches.` },
+      { titre: "Demande 3 · une planche à la fois", texte:
+`Crée maintenant la planche 1 en une seule image, format portrait : 4 cases en grille, bordures noires, avec exactement les personnages de la fiche (mêmes visages, mêmes vêtements, mêmes couleurs).
+Bulles blanches et texte en français, grand et lisible, sans faute ; reprends mot pour mot les dialogues validés.
+(Puis : « Planche 2 », « Planche 3 »… jusqu'à la dernière, en recopiant chaque fois cette consigne.)` }
+    ],
+    etapes: ["Ouvrir chatgpt.com sur le poste du référent et se connecter (une conversation pour toute la cellule).", "Envoyer la demande 1 et relire le scénario avec la cellule : contenu juste, dialogues courts, personnages respectueux. Corriger si besoin.", "Envoyer la demande 2 : garder la fiche des personnages, c'est la référence pour toute la BD.", "Envoyer la demande 3, planche par planche. Si une bulle a une faute : « Corrige le texte de la case 3 : … ».", "Télécharger chaque image, puis les rassembler dans Google Slides (ou Canva) : une planche par diapo, à projeter et à imprimer en A4.", "Déposer le lien de la présentation dans « Ma cellule »."],
+    verifier: ["Chaque notion de la leçon apparaît dans une planche, sans erreur.", "Les dates, lieux et règles sont exacts.", "Aucune faute dans les bulles (les images peuvent déformer les mots : relire lettre par lettre).", "Les personnages restent les mêmes d'une planche à l'autre.", "Aucune caricature, aucune photo ni nom d'élève réel."]
   },
   /* ---- Évaluer ---- */
   {
@@ -358,9 +441,9 @@ const METHODE = [
 const PARCOURS = [
   { id: "p0", t: "Avant le 20 octobre", missions: [
     { id: "m-comptes", t: "Créer mon compte Claude et vérifier mon compte Google" },
-    { id: "m-kit", t: "Réunir mon kit en PDF", go: "kit" } ] },
+    { id: "m-kit", t: "Réunir mon kit en PDF", go: "kit" },
+    { id: "m-entree", t: "Remplir l'auto-évaluation d'entrée (avant lundi 19 octobre)", go: "evaluations" } ] },
   { id: "p1", t: "Jour J · 20 octobre", missions: [
-    { id: "m-entree", t: "Remplir l'auto-évaluation d'entrée", go: "evaluations" },
     { id: "m-a1", t: "Terminer l'activité 1 · Mon projet Claude", go: "act:a1" },
     { id: "m-a2", t: "Terminer l'activité 2 · Le test de positionnement", go: "act:a2" },
     { id: "m-a3", t: "Terminer l'activité 3 · L'application de ma cellule", go: "act:a3" },
@@ -368,6 +451,7 @@ const PARCOURS = [
   { id: "p2", t: "Semaine 1 · 21 – 27 octobre", missions: [
     { id: "m-semaine", t: "Utiliser « Ma semaine » lundi matin", tache: "semaine" },
     { id: "m-fiches", t: "Préparer une fiche et une carte mentale par classe", tache: "fiche" },
+    { id: "m-bd", t: "Français, Langues et HG : une carte mentale et une BD avec ChatGPT, projetées en classe", tache: "bd" },
     { id: "m-cdt", t: "Préparer mon cahier de textes avec Claude trois fois", tache: "planete" } ] },
   { id: "p3", t: "Semaines 2 et 3 · jusqu'au 10 novembre", missions: [
     { id: "m-forms", t: "Créer une évaluation Google Forms et la faire passer", tache: "forms" },
