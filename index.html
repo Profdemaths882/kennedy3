@@ -149,6 +149,11 @@ body.proj header.top,body.proj nav.bottom,body.proj #offline{display:none!import
 body.proj main{max-width:1500px;padding:24px 32px 40px}
 body.proj .stk>span{font-size:17px}body.proj .seg{height:28px}body.proj .kpi .v{font-size:46px}
 .projx{position:fixed;right:16px;top:12px;z-index:50}
+.db{position:relative;height:22px;margin:0 8px}.db::before{content:"";position:absolute;left:0;right:0;top:10px;height:2px;background:var(--line)}
+.db i{position:absolute;top:50%;transform:translate(-50%,-50%)}
+.db .db-l{height:4px;transform:translateY(-50%);background:var(--line);border-radius:2px;background:linear-gradient(90deg,var(--c-in),var(--c-out))}
+.db .db-e,.db .db-s{width:14px;height:14px;border-radius:50%;border:2px solid var(--surface)}
+.db .db-e{background:var(--c-in)}.db .db-s{background:var(--c-out)}
 .g2f{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
 .tabs button{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:800;cursor:pointer;white-space:nowrap;color:var(--ink)}
 .tabs button.on{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
@@ -444,7 +449,7 @@ async function aeSend() {
   const r = await api('autoeval', body); S.busy = false;
   if (!r.ok && !r.local) { S.err = r.erreur || 'Envoi impossible.'; return render() }
   if (r.local) { DB.aeLocal = (DB.aeLocal || []).filter(x => !(x.code === A.code && x.phase === A.ph)); DB.aeLocal.push(body) }
-  DB.ae = DB.ae || {}; DB.ae.code = A.code; DB.ae[A.ph] = { date: new Date().toLocaleDateString('fr-FR') };
+  DB.ae = DB.ae || {}; DB.ae.code = A.code; DB.ae[A.ph] = { date: new Date().toLocaleDateString('fr-FR'), niv: A.niv.slice() };
   if (DB.aeDraft) delete DB.aeDraft[A.ph];
   save();
   if (DB.profil) setAv('mission:m-' + A.ph, new Date().toISOString());
@@ -461,7 +466,9 @@ function statsLocal(rows) {   // même calcul que le serveur, pour le mode démo
     const notes = R.map(x => +x.note).filter(v => v >= 1); b.nNote = notes.length; b.note = notes.length ? r2(notes.reduce((a, c) => a + c, 0) / notes.length) : null; return b };
   const E = rows.filter(x => x.phase === 'entree'), So = rows.filter(x => x.phase === 'sortie'), ent = {}; E.forEach(x => ent[x.code] = x);
   const P = So.filter(x => ent[x.code]);
-  return { ok: true, local: true, maj: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), entree: bloc(E), sortie: bloc(So), paires: P.length,
+  const m10 = x => r2(x.niveaux.reduce((a, c) => a + c, 0) / N);
+  const participants = P.map(x => { const e = m10(ent[x.code]), s = m10(x); return { code: x.code, cellule: x.cellule, e, s, gain: r2(s - e) } }).sort((a, b) => b.gain - a.gain || b.s - a.s);
+  return { ok: true, local: true, maj: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), entree: bloc(E), sortie: bloc(So), paires: P.length, participants,
     gain: P.length ? AUTOEVAL.competences.map((c, k) => r2(P.reduce((s, x) => s + x.niveaux[k] - ent[x.code].niveaux[k], 0) / P.length)) : [] };
 }
 async function loadStats() {
@@ -519,7 +526,18 @@ function vTableau() {
   const table = `<details class="card"><summary><b>Voir les chiffres en tableau</b></summary><div style="overflow:auto;margin-top:10px"><table class="t">
     <tr><th>Compétence</th>${L.map(l => `<th>${esc(l)}</th>`).join('')}<th>Moy. entrée</th>${hasO ? '<th>Moy. sortie</th>' : ''}</tr>
     ${C.map((c, k) => `<tr><td>${esc(c.c)}</td>${E.dist[k].map(x => `<td>${x}</td>`).join('')}<td>${f1(E.moy[k])}</td>${hasO ? `<td>${f1(O.moy[k])}</td>` : ''}</tr>`).join('')}</table></div></details>`;
-  return head + live + kpis + objs + dist + comps + `<div class="g2f">${ia}${cel}</div>` + avis + table +
+  const me = DB.ae && DB.ae.code, mine = DB.ae && DB.ae.entree && DB.ae.entree.niv && DB.ae.sortie && DB.ae.sortie.niv;
+  const perso = mine ? `<section class="card" style="display:flex;flex-direction:column;gap:10px;border:2px solid var(--gold)"><h2>Ma progression · ${esc(me)}</h2>${legPair}
+    ${C.map((c, k) => pairRow(`${k + 1}. ${c.c}`, DB.ae.entree.niv[k], DB.ae.sortie.niv[k])).join('')}
+    <p class="small muted">Visible seulement sur votre appareil.</p></section>` : '';
+  const P = T.participants || [];
+  const parts = hasO && P.length ? `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>La progression de chaque participant</h2>
+    <div class="lg"><span><i style="background:var(--c-in);border-radius:50%"></i>Entrée</span><span><i style="background:var(--c-out);border-radius:50%"></i>Sortie</span><span class="muted">niveau moyen sur les 10 compétences, de 1 à 4 · code personnel</span></div>
+    ${P.map(x => { const a = (x.e - 1) / 3 * 100, b = (x.s - 1) / 3 * 100, lo = Math.min(a, b), w = Math.abs(b - a);
+      return `<div class="stk"><span><b style="color:var(--ink)">${esc(x.code)}</b>${x.code === me ? ' <span class="pill gold">moi</span>' : ''}<br><span class="small muted">${esc(String(x.cellule || '').replace(/ · .*/, ''))} · ${x.gain >= 0 ? '+' : ''}${f1(x.gain)}</span></span>
+      <div class="db" title="${esc(x.code)} : entrée ${f1(x.e)} → sortie ${f1(x.s)}"><i class="db-l" style="left:${lo}%;width:${w}%"></i><i class="db-e" style="left:${a}%"></i><i class="db-s" style="left:${b}%"></i></div></div>` }).join('')}
+    <div class="stk"><span></span><div class="small muted row" style="justify-content:space-between"><span>1 · ne sait pas faire</span><span>4 · seul(e)</span></div></div></section>` : '';
+  return head + live + kpis + perso + objs + parts + dist + comps + `<div class="g2f">${ia}${cel}</div>` + avis + table +
     `<section class="card row wrap" style="gap:16px;align-items:center"><div class="qr" id="qr-ae"></div><div style="flex:1;min-width:200px"><h2>Pas encore répondu ?</h2><p class="small muted">Scannez ce code : il ouvre l'auto-évaluation d'entrée, même sans compte.</p></div></section>`;
 }
 
