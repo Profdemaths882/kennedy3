@@ -14,14 +14,14 @@ qui range les comptes et l'avancement des profs dans une feuille Google Sheets.
 | `sw.js`, `manifest.webmanifest`, `icon-*.png` | Installation sur téléphone et fonctionnement hors connexion |
 | `img/` | Captures de ProfDeMaths 2.0 (page « La méthode ProfDeMaths ») |
 
-## Étape 1 · Le serveur (10 minutes)
+## Étape 1 · Le serveur Apps Script (10 minutes)
 
-1. Créer une feuille Google Sheets nommée **Kennedy 3.0 – données**.
-2. **Extensions › Apps Script**, effacer le contenu, coller tout `Code.gs`, **Enregistrer**.
-3. En haut du code, remplacer `KENNEDY2026` par votre **code formateur**.
-4. Choisir la fonction **installer** › **Exécuter** › **Autoriser**
-   (si Google avertit : Paramètres avancés › Accéder au projet).
-5. **Déployer › Nouveau déploiement** › type **Application Web** :
+1. Ouvrir **script.google.com** › **Nouveau projet**, effacer le contenu, coller tout `Code.gs`, **Enregistrer**.
+2. En haut du code, remplacer `KENNEDY2026` par votre **code formateur**.
+3. Choisir la fonction **installer** › **Exécuter** › **Autoriser**
+   (si Google avertit : Paramètres avancés › Accéder au projet). Le script crée lui-même
+   la feuille **Kennedy 3.0 – données** dans votre Drive (onglets Profs, Avancement, Livrables, AutoEval).
+4. **Déployer › Nouveau déploiement** › roue ⚙ › **Application Web** :
    - Exécuter en tant que : **Moi**
    - Qui a accès : **Tout le monde**
    - **Déployer**, puis copier l'**URL de l'application Web** (elle se termine par `/exec`).
@@ -53,8 +53,8 @@ Le QR code à partager se trouve dans l'application : **Mon compte › Partager 
 - **Formateurs** : bouton **Espace formateur** (page de connexion) avec le code formateur. Suivi en direct :
   avancement des 3 activités, missions du parcours, liens des tests de positionnement et des mini-applications,
   cahiers des charges par cellule.
-- **Auto-évaluations** : elles restent dans les deux formulaires Google Forms déjà créés
-  (liens dans `data.js`, constante `FORMS`) ; l'analyse est dans la feuille des formulaires, onglet « Analyse ».
+- **Auto-évaluations** : dans l'application (Accueil › Auto-évaluations, ou le lien `?eval=entree`).
+  Le **tableau de bord** en direct (`?tableau`) se projette avec le bouton Projeter.
 
 ## Faire évoluer la formation
 
