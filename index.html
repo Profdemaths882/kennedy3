@@ -296,7 +296,7 @@ function route(dest) { if (!dest) return; if (dest.startsWith('act:')) return go
 
 /* ======================= VUES ======================= */
 function vAuth() {
-  const su = S.auth === 'signup';
+  const su = S.auth === 'signup', F0 = S.su || {};
   return `<section class="hero"><p class="eyebrow">CEM J.F. Kennedy · Formation 2026-2027</p>
     <h1 style="margin:8px 0 10px">Kennedy 3.0</h1>
     <p>L'application de formation des enseignants : l'IA et les applications éducatives au service des apprentissages. Un compte par prof, toute la formation au même endroit, en présentiel et à distance.</p></section>
@@ -305,16 +305,18 @@ function vAuth() {
     <div class="tabs"><button class="${su ? 'on' : ''}" data-act="auth" data-v="signup">Créer mon compte</button><button class="${su ? '' : 'on'}" data-act="auth" data-v="login">Me connecter</button></div>
     ${su ? `
     <div class="grid2" style="gap:12px">
-      <label class="form">Prénom<input id="f-prenom" autocomplete="given-name"></label>
-      <label class="form">Nom<input id="f-nom" autocomplete="family-name"></label>
+      <label class="form">Prénom<input id="f-prenom" autocomplete="given-name" value="${esc(F0.prenom || '')}"></label>
+      <label class="form">Nom<input id="f-nom" autocomplete="family-name" value="${esc(F0.nom || '')}"></label>
     </div>
-    <label class="form">Ma cellule<select id="f-cellule"><option value="">Choisir…</option>${CELLULES.map(c => `<option>${esc(c)}</option>`).join('')}</select></label>
-    <label class="form">Ma ou mes disciplines<input id="f-disc" placeholder="Mathématiques, Physique-chimie"></label>
-    <div class="form">Mes niveaux<div class="checks">${NIVEAUX.map(n => `<label><input type="checkbox" name="niv" value="${n}">${n}</label>`).join('')}</div></div>
+    <label class="form">Ma cellule<select id="f-cellule"><option value="">Choisir…</option>${CELLULES.map(c => `<option ${F0.cellule === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
+    <label class="form">Ma ou mes disciplines<input id="f-disc" placeholder="Mathématiques, Physique-chimie" value="${esc(F0.disciplines || '')}"></label>
+    <div class="form">Mes niveaux<div class="checks">${NIVEAUX.map(n => `<label><input type="checkbox" name="niv" value="${n}" ${(F0.niveaux || '').split(',').includes(n) ? 'checked' : ''}>${n}</label>`).join('')}</div></div>
     <div class="grid2" style="gap:12px">
-      <label class="form">Pseudo (pour me connecter)<input id="f-pseudo" autocapitalize="none" placeholder="ex. awa.diop"></label>
+      <label class="form">Pseudo (pour me connecter)<input id="f-pseudo" autocapitalize="none" placeholder="ex. awa.diop" value="${esc(F0.pseudo || '')}"></label>
       <label class="form">Code secret (4 chiffres)<input id="f-pin" inputmode="numeric" maxlength="4" type="password"></label>
-    </div>` : `
+    </div>
+    <label class="row small" style="gap:8px;font-weight:800;color:var(--ink)"><input type="checkbox" id="f-isf" ${F0.formateur ? 'checked' : ''} onchange="document.getElementById('f-fbox').hidden=!this.checked"> Je suis formateur ou formatrice</label>
+    <label class="form" id="f-fbox" ${F0.formateur ? '' : 'hidden'}>Code formateur<input id="f-fcode" type="password" autocomplete="off"></label>` : `
     <label class="form">Pseudo<input id="f-pseudo" autocapitalize="none"></label>
     <label class="form">Code secret<input id="f-pin" inputmode="numeric" maxlength="4" type="password"></label>`}
     ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
@@ -330,6 +332,7 @@ function vHome() {
     { v: 'jour', i: 'day', c: '', t: 'La journée du 20 octobre', d: 'Programme, horaires, ce qui se passe maintenant' },
     { v: 'evaluations', i: 'qr', c: 'o', t: 'Auto-évaluations', d: DB.ae && DB.ae.entree ? "Entrée envoyée ✓ · la sortie le 20 octobre" : "À faire avant le 20 octobre : 2 minutes" },
     { v: 'tableau', i: 'chart', c: 'g', t: 'Tableau de bord', d: 'Les résultats du groupe, en direct' },
+    ...(P.formateur ? [{ v: 'formateur', i: 'team', c: 'o', t: 'Espace formateur', d: 'Suivi en direct de tous les profs' }] : []),
     { v: 'kit', i: 'bag', c: '', t: 'Mon kit', d: `${KIT.filter(k => isDone('kit:' + k.k)).length} / ${KIT.length} éléments prêts` },
     { v: 'atelier', i: 'spark', c: 'o', t: "L'atelier Claude", d: 'La bonne demande et les consignes pour chaque tâche' },
     { v: 'methode', i: 'layers', c: 'g', t: 'La méthode ProfDeMaths', d: 'Le traitement des connaissances, étape par étape' },
@@ -338,7 +341,7 @@ function vHome() {
     { v: 'regles', i: 'shield', c: 'r', t: 'Usage responsable', d: 'Quatre règles d\'or, PLANETE 3.0' }
   ];
   return `<section class="hero"><div class="row" style="gap:18px;align-items:center">
-      <div style="flex:1;min-width:0"><p class="eyebrow">${esc(P.cellule || '')}</p>
+      <div style="flex:1;min-width:0"><p class="eyebrow">${P.formateur ? 'Formateur · ' : ''}${esc(P.cellule || '')}</p>
       <h1 style="margin:6px 0 8px">Bonjour ${esc(P.prenom)} !</h1>
       <p>${now ? `<b style="color:#fff">En ce moment :</b> ${esc(now.t)}` : 'Votre formation à l\'IA, du jour J à la formation n°2 de janvier 2027.'}</p></div>
       <div class="ring" style="--p:${g}"><div>${g}%</div></div></div>
@@ -684,6 +687,10 @@ function vCompte() {
   return `<div><p class="eyebrow">Mon compte</p><h1 style="margin-top:6px">${esc(P.prenom)} ${esc(P.nom)}</h1><p class="muted">@${esc(P.pseudo)} · ${esc(P.cellule)}</p></div>
   <section class="card" style="display:flex;flex-direction:column;gap:10px"><p><b>Disciplines :</b> ${esc(P.disciplines || '—')}</p><p><b>Niveaux :</b> ${esc(P.niveaux || '—')}</p>
     <label class="small row" style="gap:8px"><input type="checkbox" data-act="referent" ${P.referent ? 'checked' : ''}> Je suis le référent de ma cellule</label></section>
+  ${P.formateur ? `<section class="card row wrap" style="gap:12px;align-items:center"><span class="pill gold">Compte formateur</span><span class="small muted" style="flex:1">Vous avez accès au suivi de tous les profs.</span><button class="btn sm" data-act="go" data-v="formateur">Espace formateur</button></section>`
+  : `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Vous êtes formateur ?</h2><p class="small muted">Entrez le code formateur pour transformer ce compte en compte formateur.</p>
+    <label class="form">Code formateur<input id="f-upcode" type="password" autocomplete="off"></label>${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
+    <button class="btn" data-act="f-upgrade" ${S.busy ? 'disabled' : ''}>Activer l'accès formateur</button></section>`}
   <section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start"><h2>Partager Kennedy 3.0</h2><p class="small muted">Faites scanner ce code à un collègue.</p><div class="qr" id="qr-app"></div>
     <button class="btn ghost sm" data-act="share">Copier le lien</button></section>
   <section class="card row wrap"><button class="btn ghost" data-act="theme">Changer de thème</button><button class="btn ghost" data-act="logout">Me déconnecter</button></section>`;
@@ -697,7 +704,7 @@ function vFormateur() {
     ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
     <button class="btn gold" data-act="f-login" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Chargement…' : 'Accéder au suivi'}</button></section>
   <button class="btn ghost" data-act="go" data-v="${DB.profil ? 'home' : 'auth'}">Retour</button>`;
-  const F = S.F, profs = F.profs, AV = {};
+  const F = S.F, profs = F.profs.filter(p => !p.formateur), forms = F.profs.filter(p => p.formateur), AV = {};
   F.avancement.forEach(x => { (AV[x.pseudo] = AV[x.pseudo] || {})[x.cle] = x.valeur });
   const LI = {}; F.livrables.forEach(x => { (LI[x.pseudo] = LI[x.pseudo] || {})[x.type] = x.valeur });
   const done = (p, k) => !!(AV[p] && AV[p][k]);
@@ -707,9 +714,9 @@ function vFormateur() {
   const cells = CELLULES.map(c => ({ c, P: profs.filter(p => p.cellule === c) })).filter(x => x.P.length);
   const bars = (rows) => rows.map(([l, v]) => `<div class="chart-row"><span>${esc(l)}</span><div class="bar"><i style="width:${v}%;background:${v >= 80 ? 'var(--green)' : v >= 40 ? 'var(--gold)' : 'var(--red)'}"></i></div><b>${v}%</b></div>`).join('');
   return `<div class="row wrap"><div style="flex:1"><p class="eyebrow">Suivi en direct</p><h1 style="margin-top:6px">Espace formateur</h1></div>
-    <button class="btn sm ghost" data-act="f-refresh">Actualiser</button><button class="btn sm ghost" data-act="f-out">Quitter</button></div>
+    <button class="btn sm ghost" data-act="f-refresh">Actualiser</button>${DB.profil && DB.profil.formateur ? '' : '<button class="btn sm ghost" data-act="f-out">Quitter</button>'}<button class="btn sm gold" data-act="go" data-v="tableau">Tableau de bord</button></div>
   <div class="grid2">
-    <section class="card"><p class="eyebrow">Inscrits</p><h1 style="margin-top:6px">${profs.length}</h1><p class="small muted">${cells.length} cellule(s)</p></section>
+    <section class="card"><p class="eyebrow">Profs inscrits</p><h1 style="margin-top:6px">${profs.length}</h1><p class="small muted">${cells.length} cellule(s)${forms.length ? ' · formateurs : ' + forms.map(p => esc(p.prenom)).join(', ') : ''}</p></section>
     <section class="card"><p class="eyebrow">Missions du parcours</p><h1 style="margin-top:6px">${avg(profs.map(p => Math.round(miss.filter(m => done(p.pseudo, 'mission:' + m.id)).length / miss.length * 100)))}%</h1><p class="small muted">en moyenne</p></section>
     <section class="card"><p class="eyebrow">Tests de positionnement</p><h1 style="margin-top:6px">${profs.filter(p => (LI[p.pseudo] || {}).test).length}</h1><p class="small muted">liens déposés</p></section>
   </div>
@@ -745,7 +752,8 @@ function render() {
     ${logged ? `<button class="hb" data-act="go" data-v="compte" title="Mon compte" aria-label="Mon compte" style="background:#E0B54A;border-color:#E0B54A;color:#0F2552;font-weight:900;font-family:var(--display)">${esc((DB.profil.prenom || '?').charAt(0).toUpperCase())}</button>
     <button class="hb" data-act="logout" title="Me déconnecter" aria-label="Me déconnecter">${ic('logout', 20)}</button>` : ''}</span>`;
   const nav = $('#nav'); nav.hidden = !logged;
-  if (logged) nav.firstElementChild.innerHTML = [['home', 'home', 'Accueil'], ['jour', 'day', 'Journée'], ['atelier', 'spark', 'Atelier'], ['parcours', 'route', 'Parcours'], ['cellule', 'team', 'Cellule']]
+  if (logged) nav.firstElementChild.innerHTML = (DB.profil.formateur ? [['home', 'home', 'Accueil'], ['jour', 'day', 'Journée'], ['tableau', 'chart', 'Tableau'], ['formateur', 'team', 'Suivi'], ['atelier', 'spark', 'Atelier']]
+    : [['home', 'home', 'Accueil'], ['jour', 'day', 'Journée'], ['atelier', 'spark', 'Atelier'], ['parcours', 'route', 'Parcours'], ['cellule', 'team', 'Cellule']])
     .map(([v, i, l]) => `<button class="${S.v === v || (v === 'atelier' && S.v === 'tache') ? 'on' : ''}" data-act="go" data-v="${v}">${ic(i, 22)}<span>${l}</span></button>`).join('');
   afterRender();
 }
@@ -755,6 +763,7 @@ function afterRender() {
   if (S.v === 'tableau' && !S.st && !S.stLoading) loadStats();
   if (S.v === 'compte') mk('qr-app', appUrl());
   if (S.v === 'cellule' && !S.cel && apiOn() && !S.celLoading) loadCellule();
+  if (S.v === 'formateur' && !S.F && !S.busy && !S.err && DB.profil && DB.profil.formateur) loadF('');
 }
 const appUrl = () => location.href.split('#')[0].split('?')[0];
 
@@ -816,6 +825,11 @@ document.addEventListener('click', async e => {
   if (a === 'theme') { const r = document.documentElement, cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); r.dataset.theme = cur === 'dark' ? 'light' : 'dark'; DB.theme = r.dataset.theme; save(); return }
   if (a === 'f-login') { const c = $('#f-code').value.trim(); try { sessionStorage.setItem('k3_fcode', c) } catch (e2) {} return loadF(c) }
   if (a === 'f-refresh') return loadF(sessionCode());
+  if (a === 'f-upgrade') { const c = ($('#f-upcode') || {}).value || ''; if (!c.trim()) { S.err = 'Entrez le code formateur.'; return render() }
+    if (!apiOn()) { DB.profil.formateur = true; save(); toast('Compte formateur activé (mode démonstration).'); return go('formateur') }
+    S.busy = true; S.err = ''; render(); const r = await api('devenirFormateur', Object.assign(auth(), { codeFormateur: c.trim() })); S.busy = false;
+    if (!r.ok) { if (r.session) return sessionLost(); S.err = r.erreur || 'Impossible.'; return render() }
+    DB.profil = r.profil; save(); toast('Compte formateur activé.'); return go('formateur') }
   if (a === 'f-out') { S.F = null; try { sessionStorage.removeItem('k3_fcode') } catch (e2) {} return render() }
 });
 document.addEventListener('input', e => {
@@ -831,14 +845,19 @@ async function signup() {
   const P = { prenom: g('#f-prenom').trim(), nom: g('#f-nom').trim(), cellule: g('#f-cellule'), disciplines: g('#f-disc').trim(),
     niveaux: [...document.querySelectorAll('[name=niv]:checked')].map(i => i.value).join(','), pseudo: g('#f-pseudo').trim().toLowerCase().replace(/\s+/g, '') };
   const pin = g('#f-pin').trim();
+  const isF = !!($('#f-isf') && $('#f-isf').checked), fcode = g('#f-fcode').trim();
+  S.su = Object.assign({}, P, { formateur: isF });
+  if (isF && !fcode) { S.err = 'Entrez le code formateur.'; return render() }
+  if (isF) { P.formateur = true; P.codeFormateur = fcode }
+  S.su = Object.assign({}, P, { codeFormateur: '' });
   if (!P.prenom || !P.nom || !P.cellule) { S.err = 'Prénom, nom et cellule sont obligatoires.'; return render() }
   if (!/^[a-z0-9._-]{3,20}$/.test(P.pseudo)) { S.err = 'Pseudo : 3 à 20 lettres, chiffres, point ou tiret.'; return render() }
   if (!/^\d{4}$/.test(pin)) { S.err = 'Le code secret doit avoir 4 chiffres.'; return render() }
-  if (!apiOn()) { DB.profil = P; DB.jeton = 'local'; save(); toast('Compte créé sur cet appareil (mode démonstration).'); return go('home') }
+  if (!apiOn()) { delete P.codeFormateur; DB.profil = P; DB.jeton = 'local'; save(); toast('Compte créé sur cet appareil (mode démonstration).'); return go('home') }
   S.busy = true; S.err = ''; render();
   const r = await api('inscrire', Object.assign({ pin }, P)); S.busy = false;
   if (!r.ok) { S.err = r.erreur || 'Inscription impossible.'; return render() }
-  DB.profil = r.profil; DB.jeton = r.jeton; save(); flush(); toast('Bienvenue dans Kennedy 3.0 !'); go('home');
+  S.su = null; DB.profil = r.profil; DB.jeton = r.jeton; save(); flush(); toast('Bienvenue dans Kennedy 3.0 !'); go('home');
 }
 async function login() {
   const pseudo = ($('#f-pseudo').value || '').trim().toLowerCase(), pin = ($('#f-pin').value || '').trim();
@@ -858,7 +877,9 @@ async function loadCellule() {
 }
 async function loadF(code) {
   S.busy = true; S.err = ''; render();
-  const r = await api('formateur', { code }); S.busy = false;
+  const isF = DB.profil && DB.profil.formateur && DB.jeton && DB.jeton !== 'local';
+  if (DB.profil && DB.profil.formateur && !apiOn()) { S.busy = false; S.err = "Le suivi des profs a besoin du serveur."; return render() }
+  const r = await api('formateur', isF ? auth() : { code }); S.busy = false;
   if (!r.ok) { S.err = r.erreur || 'Accès refusé.'; S.F = null } else S.F = r;
   render();
 }
