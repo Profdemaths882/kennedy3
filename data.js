@@ -69,7 +69,7 @@ const ACTIVITES = [
     objectif: "J'automatise mon année : Claude connaît mon emploi du temps, mes classes, mes programmes et mes manuels.",
     livrable: "Mon projet prêt, mon agenda rempli, 3 productions vérifiées",
     etapes: [
-      { t: "Se connecter à claude.ai", m: 5, d: "Avec son compte Google ou son adresse e-mail." },
+      { t: "Se connecter à claude.ai", m: 5, d: "Avec son compte Google (Gmail) : « Continuer avec Google ».", go: "claudecompte" },
       { t: "Créer le projet et y déposer le kit", m: 15, d: "Projets › Nouveau projet « Mon année 2026-2027 · [discipline] ». Ajouter dans les connaissances : emploi du temps, classes, programmes, progression, compétences, manuels.", tache: "instructions" },
       { t: "Coller les instructions du projet", m: 5, d: "Les adapter à sa discipline et à ses classes.", tache: "instructions" },
       { t: "Connecter Google Agenda", m: 10, d: "Bouton + › Connecteurs › Google Agenda, puis placer son emploi du temps.", tache: "agenda" },
@@ -440,7 +440,7 @@ const METHODE = [
 /* ---------- formation continue : le parcours sur l'année ---------- */
 const PARCOURS = [
   { id: "p0", t: "Avant le 20 octobre", missions: [
-    { id: "m-comptes", t: "Créer mon compte Claude et vérifier mon compte Google" },
+    { id: "m-comptes", t: "Créer mon compte Claude avec Gmail (vidéo)", go: "claudecompte" },
     { id: "m-kit", t: "Réunir mon kit en PDF", go: "kit" },
     { id: "m-entree", t: "Remplir l'auto-évaluation d'entrée (avant lundi 19 octobre)", go: "evaluations" } ] },
   { id: "p1", t: "Jour J · 20 octobre", missions: [
@@ -509,6 +509,22 @@ const TRAVAUX = [
       { auto: "cdc", t: "Le cahier des charges de l'application est rempli", pts: 4, conseil: "Complétez le cahier des charges dans « Ma cellule » (pour qui, pour quoi, modules, données, échéancier)." }
     ] }
 ];
+
+/* ---------- créer son compte Claude avec Gmail ---------- */
+const COMPTE_CLAUDE = {
+  videos: [
+    { t: "Sur téléphone", url: "https://www.youtube.com/watch?v=D0w_KCltMV4" },
+    { t: "Sur ordinateur", url: "https://www.youtube.com/watch?v=MfgS0wEQqTw" }
+  ],
+  aide: "https://support.claude.com/fr/articles/13189465-connectez-vous-a-votre-compte-claude",
+  etapes: [
+    "Ouvrez claude.ai dans le navigateur (ou installez l'application Claude).",
+    "Touchez « Continuer avec Google ».",
+    "Choisissez votre adresse Gmail, celle que vous utiliserez aussi pour Google Agenda et Google Forms.",
+    "Acceptez les conditions et indiquez votre nom.",
+    "C'est prêt : le compte gratuit suffit pour commencer."
+  ]
+};
 
 const MODULES_APP = ["Test de positionnement", "Cours rédigés", "Exercices corrigés", "Quiz auto-corrigés", "Évaluations notées sur 20", "Groupes de besoin", "Fiche de résultats", "Classement (pseudos)", "Emplois du temps", "Planification des séances", "Suivi des notes par le prof"];
 
