@@ -1,5 +1,5 @@
 /* Kennedy 3.0 · fonctionnement hors connexion (même principe que ProfDeMaths 2.0) */
-const V = 'k3-202610172240';
+const V = 'k3-202610172250';
 const CORE = ['./', './index.html', './data.js', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './img/s3_test_question.jpg', './img/s4_groupe.jpg', './img/s5_cours.jpg', './img/s6_quiz.jpg', './img/s7_eval_fiche.jpg', './img/s8_classement.jpg', './img/ex_bd.jpg', './img/ex_carte_mentale.jpg'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(CORE)).then(() => self.skipWaiting())) });
