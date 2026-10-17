@@ -59,6 +59,8 @@ header.top{position:sticky;top:0;z-index:20;background:var(--navy);color:var(--o
 .top-in .sp{flex:1}
 .chip{border:1px solid rgba(255,255,255,.35);background:transparent;color:var(--on-navy);border-radius:999px;padding:7px 14px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
 .hb{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);color:var(--on-navy);cursor:pointer;padding:0}
+.hb[hidden]{display:none}
+.tabs.t3{display:grid;grid-template-columns:repeat(3,1fr)}.tabs.t3 button{padding:8px 6px;white-space:normal;line-height:1.2}
 .hb:hover{background:rgba(255,255,255,.16)} .hb:active{transform:scale(.94)}
 .hb.spin svg{animation:k3spin .8s linear infinite} @keyframes k3spin{to{transform:rotate(360deg)}}
 .tools{display:flex;gap:6px;align-items:center}
@@ -276,10 +278,11 @@ function go(v, p, noPush) {
   if (!noPush && (S.v !== v || S.p !== (p || null))) { try { history.pushState({ v, p: p || null }, ''); S.depth = (S.depth || 0) + 1 } catch (e) {} }
   S.v = v; S.p = p || null; S.err = ''; render(); window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
 }
+function goAfter() { const a = S.after; S.after = null; if (a && a.v) return go(a.v, a.p); go('home') }
 function back() { if (history.state && history.state.v && history.length > 1 && S.depth > 0) history.back(); else go(DB.profil ? 'home' : 'auth') }
 window.addEventListener('popstate', e => {
   const st = e.state; S.depth = Math.max(0, (S.depth || 0) - 1);
-  if (st && st.v) { if (!DB.profil && !['auth', 'formateur', 'autoeval', 'tableau'].includes(st.v)) return go('auth', null, true); go(st.v, st.p, true) }
+  if (st && st.v) { if (!DB.profil && !['auth', 'formateur'].includes(st.v)) return go('auth', null, true); go(st.v, st.p, true) }
   else go(DB.profil ? 'home' : 'auth', null, true);
 });
 async function actualiser(btn) {
@@ -303,8 +306,18 @@ function vAuth() {
   ${apiOn() ? '' : `<p class="note small"><b>Mode démonstration :</b> le serveur n'est pas encore branché. Les données restent sur cet appareil.</p>`}
   ${S.migr ? `<p class="note small"><b>Kennedy 3.0 est maintenant relié au serveur.</b> Le compte créé avant n'existait que sur ce téléphone : créez votre compte une dernière fois, il sera ensuite retrouvé partout.</p>` : ''}
   <section class="card" style="display:flex;flex-direction:column;gap:14px">
-    <div class="tabs"><button class="${su ? 'on' : ''}" data-act="auth" data-v="signup">Créer mon compte</button><button class="${su ? '' : 'on'}" data-act="auth" data-v="login">Me connecter</button></div>
-    ${su ? `
+    <div class="tabs t3"><button class="${S.auth === 'signup' ? 'on' : ''}" data-act="auth" data-v="signup">Créer mon compte</button><button class="${S.auth === 'login' ? 'on' : ''}" data-act="auth" data-v="login">Me connecter</button><button class="${S.auth === 'form' ? 'on' : ''}" data-act="auth" data-v="form">Formateur</button></div>
+    ${S.after && S.after.v === 'autoeval' ? `<p class="note small"><b>Pour faire l'auto-évaluation</b>, créez d'abord votre compte (ou connectez-vous). Elle s'ouvrira juste après.</p>` : ''}
+    ${S.auth === 'form' ? `
+    <p class="small"><b>Vous avez déjà votre compte formateur ?</b> Connectez-vous avec votre pseudo et votre code secret.</p>
+    <label class="form">Pseudo<input id="f-pseudo" autocapitalize="none"></label>
+    <label class="form">Code secret<input id="f-pin" inputmode="numeric" maxlength="4" type="password"></label>
+    ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
+    <button class="btn gold wide" data-act="login" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Un instant…' : 'Me connecter'}</button>
+    <div style="border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px">
+      <p class="small"><b>Première fois ?</b> Le formateur principal vous envoie un lien d'invitation : ouvrez-le pour créer votre compte formateur.</p>
+      <button class="btn ghost" data-act="auth-finv">J'ai un code d'invitation</button>
+      <button class="btn ghost" data-act="go" data-v="formateur">Accès avec le code administrateur</button></div>` : su ? `
     <div class="grid2" style="gap:12px">
       <label class="form">Prénom<input id="f-prenom" autocomplete="given-name" value="${esc(F0.prenom || '')}"></label>
       <label class="form">Nom<input id="f-nom" autocomplete="family-name" value="${esc(F0.nom || '')}"></label>
@@ -320,11 +333,10 @@ function vAuth() {
     <label class="form" id="f-fbox" ${F0.formateur ? '' : 'hidden'}>Code d'invitation<input id="f-fcode" autocomplete="off" value="${esc(S.invite || '')}" placeholder="F-XXXXXX"></label>` : `
     <label class="form">Pseudo<input id="f-pseudo" autocapitalize="none"></label>
     <label class="form">Code secret<input id="f-pin" inputmode="numeric" maxlength="4" type="password"></label>`}
-    ${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
+    ${S.auth === 'form' ? '' : `${S.err ? `<p class="err">${esc(S.err)}</p>` : ''}
     <button class="btn gold wide" data-act="${su ? 'signup' : 'login'}" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Un instant…' : su ? 'Créer mon compte' : 'Me connecter'}</button>
-    <p class="small muted">Votre pseudo et votre code permettent de retrouver votre avancement sur n'importe quel appareil.</p>
-  </section>
-  <button class="btn ghost" data-act="go" data-v="formateur">Espace formateur</button>`;
+    <p class="small muted">Votre pseudo et votre code permettent de retrouver votre avancement sur n'importe quel appareil.</p>`}
+  </section>`;
 }
 
 function vHome() {
@@ -844,7 +856,7 @@ function sessionCode() { try { return sessionStorage.getItem('k3_fcode') || '' }
 /* ======================= RENDU ======================= */
 function render() {
   const logged = !!DB.profil;
-  if (!logged && !['auth', 'formateur', 'autoeval', 'tableau'].includes(S.v)) S.v = 'auth';
+  if (!logged && !['auth', 'formateur'].includes(S.v)) S.v = 'auth';
   const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur, autoeval: () => vAutoeval(S.p), tableau: vTableau, travaux: vTravaux, travail: () => vTravail(S.p), corrections: vCorrections };
   $('#app').innerHTML = (views[S.v] || vHome)();
   const bb = $('#backbtn'), atRoot = (logged && S.v === 'home') || (!logged && S.v === 'auth');
@@ -911,6 +923,7 @@ document.addEventListener('click', async e => {
   if (a === 'reload') return location.reload();
   if (a === 'route') return route(v);
   if (a === 'auth') { S.auth = v; S.err = ''; return render() }
+  if (a === 'auth-finv') { S.auth = 'signup'; S.su = Object.assign({}, S.su || {}, { formateur: true }); S.err = ''; return render() }
   if (a === 'signup') return signup();
   if (a === 'login') return login();
   if (a === 'logout') return logout();
@@ -973,11 +986,11 @@ async function signup() {
   if (!P.prenom || !P.nom || !P.cellule) { S.err = 'Prénom, nom et cellule sont obligatoires.'; return render() }
   if (!/^[a-z0-9._-]{3,20}$/.test(P.pseudo)) { S.err = 'Pseudo : 3 à 20 lettres, chiffres, point ou tiret.'; return render() }
   if (!/^\d{4}$/.test(pin)) { S.err = 'Le code secret doit avoir 4 chiffres.'; return render() }
-  if (!apiOn()) { delete P.codeFormateur; DB.profil = P; DB.jeton = 'local'; save(); toast('Compte créé sur cet appareil (mode démonstration).'); return go('home') }
+  if (!apiOn()) { delete P.codeFormateur; DB.profil = P; DB.jeton = 'local'; save(); toast('Compte créé sur cet appareil (mode démonstration).'); return goAfter() }
   S.busy = true; S.err = ''; render();
   const r = await api('inscrire', Object.assign({ pin }, P)); S.busy = false;
   if (!r.ok) { S.err = r.erreur || 'Inscription impossible.'; return render() }
-  S.su = null; DB.profil = r.profil; DB.jeton = r.jeton; save(); flush(); toast('Bienvenue dans Kennedy 3.0 !'); go('home');
+  S.su = null; DB.profil = r.profil; DB.jeton = r.jeton; save(); flush(); toast('Bienvenue dans Kennedy 3.0 !'); goAfter();
 }
 async function login() {
   const pseudo = ($('#f-pseudo').value || '').trim().toLowerCase(), pin = ($('#f-pin').value || '').trim();
@@ -986,7 +999,7 @@ async function login() {
   const r = await api('connexion', { pseudo, pin }); S.busy = false;
   if (!r.ok) { S.err = r.erreur || 'Connexion impossible.'; return render() }
   DB.profil = r.profil; DB.jeton = r.jeton; DB.av = (r.donnees && r.donnees.avancement) || {}; DB.liv = (r.donnees && r.donnees.livrables) || {}; DB.com = (r.donnees && r.donnees.commentaires) || []; DB.queue = []; save();
-  toast('Content de vous revoir, ' + r.profil.prenom + ' !'); go('home');
+  toast('Content de vous revoir, ' + r.profil.prenom + ' !'); goAfter();
 }
 function logout(silent) { if (!silent && !confirm('Se déconnecter de cet appareil ?')) return; const th = DB.theme; DB = { av: {}, liv: {}, vars: {}, queue: [], theme: th }; save(); S.cel = null; S.F = null; try { sessionStorage.removeItem('k3_fcode') } catch (e) {} go('auth'); toast('Vous êtes déconnecté.') }
 async function loadCellule() {
@@ -1011,6 +1024,7 @@ if (!navigator.onLine) $('#offline').hidden = false;
 if (apiOn() && DB.profil && (!DB.jeton || DB.jeton === 'local')) { const th = DB.theme, ae = DB.ae; DB = { av: {}, liv: {}, vars: {}, queue: [], theme: th, ae }; save(); S.auth = 'signup'; S.migr = true }
 S.v = DB.profil ? 'home' : 'auth'; S.depth = 0;
 (() => { const q = new URLSearchParams(location.search); if (q.get('eval')) { S.v = 'autoeval'; S.p = q.get('eval') === 'sortie' ? 'sortie' : 'entree' } else if (q.has('tableau')) S.v = 'tableau';
+  if (!DB.profil && (S.v === 'autoeval' || S.v === 'tableau')) { S.after = { v: S.v, p: S.p }; S.v = 'auth'; S.p = null; S.auth = 'signup' }
   if (q.get('invite')) { S.invite = q.get('invite').toUpperCase(); if (DB.profil) S.v = 'compte'; else { S.v = 'auth'; S.auth = 'signup'; S.su = { formateur: true } } } })();
 try { history.replaceState({ v: S.v, p: S.p }, '') } catch (e) {}
 render(); setTimeout(flush, 1200);
