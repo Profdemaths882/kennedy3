@@ -191,7 +191,7 @@ table.t th{font-family:var(--display);font-size:12px;letter-spacing:.06em;text-t
 <div id="offline" class="offline" hidden>Hors connexion : vos actions seront envoyées au retour du réseau.</div>
 <main id="app"></main>
 <nav class="bottom" id="nav" hidden><div></div></nav>
-<script src="data.js?v=202610181420"></script>
+<script src="data.js?v=202610181445"></script>
 <script>
 /* ======================================================================
    KENNEDY 3.0 · CEM J.F. Kennedy · ProfDeMaths 2.0
@@ -362,6 +362,7 @@ function vHome() {
       <div class="ring" style="--p:${g}"><div>${g}%</div></div></div>
       ${now && now.go ? `<button class="btn gold" style="margin-top:16px" data-act="route" data-v="${esc(now.go)}">Y aller</button>` : ''}
     </section>
+  ${!(DB.ae && DB.ae.entree) && !P.formateur ? `<section class="card row wrap" style="gap:12px;align-items:center;border:2px solid var(--gold)"><div style="flex:1;min-width:200px"><b style="color:var(--ink);font-size:17px">Auto-évaluation d'entrée</b><p class="small muted">À faire avant le mardi 20 octobre · 2 minutes, anonyme</p></div><button class="btn gold" data-act="ae-open" data-v="entree">✍ Remplir maintenant</button></section>` : ''}
   <section><p class="eyebrow" style="margin-bottom:10px">Les trois activités</p>
     <div class="grid2">${ACTIVITES.map(a => { const x = actPct(a); return `<button class="tile" data-act="route" data-v="act:${a.id}">
       <div class="row"><span class="ic ${a.couleur === 'green' ? 'g' : a.couleur === 'gold' ? 'o' : ''}" style="font-family:var(--display);font-weight:900">${a.n}</span><span class="pill ${x.p === 100 ? 'ok' : ''}">${x.d}/${x.n}</span></div>
@@ -414,7 +415,8 @@ function vEvaluations() {
     <p class="small muted">Les résultats du groupe, mis à jour toutes les 15 secondes : à projeter pendant la formation.</p>
     <button class="btn wide" data-act="go" data-v="tableau">${ic('chart', 18)} Ouvrir le tableau de bord</button></section>
   <section class="card" style="display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center"><h2>Faire scanner l'auto-évaluation</h2>
-    <div class="qr" id="qr-ae"></div><p class="small muted">Ce code ouvre directement l'auto-évaluation d'entrée, même sans compte.</p></section>`;
+    <div class="qr" id="qr-ae"></div><p class="small muted">Ce code ouvre l'auto-évaluation d'entrée (après création du compte).</p>
+    <button class="btn gold wide" data-act="ae-open" data-v="entree">✍ Remplir l'auto-évaluation</button></section>`;
 }
 
 const aeUrl = ph => appUrl() + '?eval=' + ph;
@@ -558,7 +560,7 @@ function vTableau() {
     <p class="small muted">Avant la formation, l'IA dans le travail : ${AUTOEVAL.ia.map(k => `${esc(k)} ${E.ia[k] || 0}`).join(' · ')}</p>
     <p class="small muted">Participation : ${Object.keys(E.cellules).map(k => `${esc(k)} ${E.cellules[k]}`).join(' · ')}</p>
     ${hasO ? `<p class="small muted">Projet Claude dès la semaine prochaine : ${AUTOEVAL.projet.map(k => `${esc(k)} ${O.projet[k] || 0}`).join(' · ')}</p>` : ''}</div></details>`;
-  const qr = proj ? '' : `<section class="card row wrap" style="gap:16px;align-items:center"><div class="qr" id="qr-ae"></div><div style="flex:1;min-width:200px"><h2>Pas encore répondu ?</h2><p class="small muted">Scannez ce code : il ouvre l'auto-évaluation, même sans compte.</p></div></section>`;
+  const qr = proj ? '' : `<section class="card row wrap" style="gap:16px;align-items:center"><div class="qr" id="qr-ae"></div><div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px;align-items:flex-start"><h2>Pas encore répondu ?</h2><p class="small muted">Scannez ce code ou touchez le bouton.</p><button class="btn gold" data-act="ae-open" data-v="entree">✍ Remplir l'auto-évaluation</button></div></section>`;
   return head + live + kpis + words + perso + list + parts + detail + qr;
 }
 
