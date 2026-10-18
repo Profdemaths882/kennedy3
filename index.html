@@ -191,7 +191,7 @@ table.t th{font-family:var(--display);font-size:12px;letter-spacing:.06em;text-t
 <div id="offline" class="offline" hidden>Hors connexion : vos actions seront envoyées au retour du réseau.</div>
 <main id="app"></main>
 <nav class="bottom" id="nav" hidden><div></div></nav>
-<script src="data.js?v=202610181420"></script>
+<script src="data.js?v=202610181535"></script>
 <script>
 /* ======================================================================
    KENNEDY 3.0 · CEM J.F. Kennedy · ProfDeMaths 2.0
@@ -362,6 +362,9 @@ function vHome() {
       <div class="ring" style="--p:${g}"><div>${g}%</div></div></div>
       ${now && now.go ? `<button class="btn gold" style="margin-top:16px" data-act="route" data-v="${esc(now.go)}">Y aller</button>` : ''}
     </section>
+  ${!(DB.ae && DB.ae.entree) && !P.formateur ? `<section class="card row wrap" style="gap:12px;align-items:center;border:2px solid var(--gold)"><div style="flex:1;min-width:200px"><b style="color:var(--ink);font-size:17px">Auto-évaluation d'entrée</b><p class="small muted">À faire avant le mardi 20 octobre · 2 minutes, anonyme</p></div><button class="btn gold" data-act="ae-open" data-v="entree">✍ Remplir maintenant</button></section>` : ''}
+  ${!isDone('mission:m-comptes') ? `<section class="card" style="display:flex;flex-direction:column;gap:10px;border:2px solid var(--blue)"><div><b style="color:var(--ink);font-size:17px">Installer l'application Claude</b><p class="small muted">Gratuit · puis créez votre compte avec votre Gmail</p></div>
+    <div class="row wrap" style="gap:8px">${claudeAppBtn()}<button class="btn ghost" data-act="go" data-v="claudecompte">Autres appareils et vidéo</button></div></section>` : ''}
   <section><p class="eyebrow" style="margin-bottom:10px">Les trois activités</p>
     <div class="grid2">${ACTIVITES.map(a => { const x = actPct(a); return `<button class="tile" data-act="route" data-v="act:${a.id}">
       <div class="row"><span class="ic ${a.couleur === 'green' ? 'g' : a.couleur === 'gold' ? 'o' : ''}" style="font-family:var(--display);font-weight:900">${a.n}</span><span class="pill ${x.p === 100 ? 'ok' : ''}">${x.d}/${x.n}</span></div>
@@ -414,7 +417,8 @@ function vEvaluations() {
     <p class="small muted">Les résultats du groupe, mis à jour toutes les 15 secondes : à projeter pendant la formation.</p>
     <button class="btn wide" data-act="go" data-v="tableau">${ic('chart', 18)} Ouvrir le tableau de bord</button></section>
   <section class="card" style="display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center"><h2>Faire scanner l'auto-évaluation</h2>
-    <div class="qr" id="qr-ae"></div><p class="small muted">Ce code ouvre directement l'auto-évaluation d'entrée, même sans compte.</p></section>`;
+    <div class="qr" id="qr-ae"></div><p class="small muted">Ce code ouvre l'auto-évaluation d'entrée (après création du compte).</p>
+    <button class="btn gold wide" data-act="ae-open" data-v="entree">✍ Remplir l'auto-évaluation</button></section>`;
 }
 
 const aeUrl = ph => appUrl() + '?eval=' + ph;
@@ -558,7 +562,7 @@ function vTableau() {
     <p class="small muted">Avant la formation, l'IA dans le travail : ${AUTOEVAL.ia.map(k => `${esc(k)} ${E.ia[k] || 0}`).join(' · ')}</p>
     <p class="small muted">Participation : ${Object.keys(E.cellules).map(k => `${esc(k)} ${E.cellules[k]}`).join(' · ')}</p>
     ${hasO ? `<p class="small muted">Projet Claude dès la semaine prochaine : ${AUTOEVAL.projet.map(k => `${esc(k)} ${O.projet[k] || 0}`).join(' · ')}</p>` : ''}</div></details>`;
-  const qr = proj ? '' : `<section class="card row wrap" style="gap:16px;align-items:center"><div class="qr" id="qr-ae"></div><div style="flex:1;min-width:200px"><h2>Pas encore répondu ?</h2><p class="small muted">Scannez ce code : il ouvre l'auto-évaluation, même sans compte.</p></div></section>`;
+  const qr = proj ? '' : `<section class="card row wrap" style="gap:16px;align-items:center"><div class="qr" id="qr-ae"></div><div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px;align-items:flex-start"><h2>Pas encore répondu ?</h2><p class="small muted">Scannez ce code ou touchez le bouton.</p><button class="btn gold" data-act="ae-open" data-v="entree">✍ Remplir l'auto-évaluation</button></div></section>`;
   return head + live + kpis + words + perso + list + parts + detail + qr;
 }
 
@@ -655,6 +659,8 @@ function vCorrections() {
     : `<section class="card"><p class="muted">Aucun travail déposé pour ${esc(T.act)} pour le moment.</p></section>`);
 }
 
+function myDevice() { const ua = navigator.userAgent; return /iPhone|iPad|iPod/.test(ua) ? 'ios' : /Android/.test(ua) ? 'android' : /Mac/.test(ua) ? 'mac' : /Windows/.test(ua) ? 'win' : '' }
+function claudeAppBtn(cls) { const a = COMPTE_CLAUDE.apps.find(x => x.k === myDevice()); return a ? `<a class="btn ${cls || 'gold'}" href="${esc(a.url)}" target="_blank" rel="noopener">⬇ Télécharger Claude (${esc(a.t)})</a>` : `<a class="btn ${cls || 'gold'}" href="${esc(COMPTE_CLAUDE.page)}" target="_blank" rel="noopener">⬇ Télécharger Claude</a>` }
 function vClaudeCompte() {
   return `<div><p class="eyebrow">Avant le 20 octobre</p><h1 style="margin-top:6px">Créer mon compte Claude avec Gmail</h1>
   <p class="muted" style="margin-top:6px">5 minutes. Utilisez votre adresse Gmail : c'est la même qui servira pour Google Agenda et Google Forms pendant la formation.</p></div>
@@ -910,7 +916,7 @@ const appUrl = () => location.href.split('#')[0].split('?')[0];
 const invUrl = c => appUrl() + '?invite=' + encodeURIComponent(c);
 const invMsg = (pour, c) => `Bonjour ${pour},\n\nJe vous invite dans l'équipe des formateurs de *Kennedy 3.0*, l'application de la formation IA des enseignants du CEM J.F. Kennedy.\n\n👉 Ouvrez ce lien pour créer votre compte formateur :\n${invUrl(c)}\n\nCode d'invitation : *${c}* (il ne sert qu'une fois).\nChoisissez ensuite votre pseudo et votre code secret à 4 chiffres.\n\n${DB.profil ? DB.profil.prenom + ' ' + DB.profil.nom : 'M. Racine Thiam'} · Kennedy 3.0`;
 const waUrl = txt => 'https://wa.me/?text=' + encodeURIComponent(txt);
-const shareMsg = () => `Bonjour chers collègues 👋\n\nVoici *Kennedy 3.0*, l'application de notre formation « IA et applications éducatives » du *mardi 20 octobre 2026* (09h00 – 16h00, salle multimédia du CEM J.F. Kennedy).\n\n👉 Ouvrez ce lien :\n${appUrl()}?eval=entree\n\n1️⃣ Créez votre compte (pseudo + code secret à 4 chiffres).\n2️⃣ Remplissez l'auto-évaluation d'entrée *avant lundi soir* : 2 minutes, anonyme.\n3️⃣ Installez Claude et créez votre compte avec votre Gmail (liens et vidéo dans l'application, tuile « Mon compte Claude »).\n\nVous y trouverez aussi le programme, le kit à apporter et les activités pas à pas.\n\nÀ mardi !\n${DB.profil ? DB.profil.prenom + ' ' + DB.profil.nom : 'M. Racine Thiam'} · Formateurs : M. Racine Thiam et Mme Diop Aminata Mbaye`;
+const shareMsg = () => `Bonjour chers collègues 👋\n\nVoici *Kennedy 3.0*, l'application de notre formation « IA et applications éducatives » du *mardi 20 octobre 2026* (09h00 – 16h00, salle multimédia du CEM J.F. Kennedy).\n\n👉 Ouvrez ce lien :\n${appUrl()}?eval=entree\n\n1️⃣ Créez votre compte (pseudo + code secret à 4 chiffres).\n2️⃣ Remplissez l'auto-évaluation d'entrée *avant lundi soir* : 2 minutes, anonyme.\n3️⃣ Installez Claude (gratuit) et créez votre compte avec votre Gmail : ${COMPTE_CLAUDE.page}\n\nVous y trouverez aussi le programme, le kit à apporter et les activités pas à pas.\n\nÀ mardi !\n${DB.profil ? DB.profil.prenom + ' ' + DB.profil.nom : 'M. Racine Thiam'} · Formateurs : M. Racine Thiam et Mme Diop Aminata Mbaye`;
 const waBtn = (cls) => `<a class="btn ${cls || ''}" style="background:#25D366;color:#0B3B1F" href="${waUrl(shareMsg())}" target="_blank" rel="noopener">📲 Partager sur WhatsApp</a>`;
 
 /* ======================= ACTIONS ======================= */
