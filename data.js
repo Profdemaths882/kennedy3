@@ -517,6 +517,13 @@ const COMPTE_CLAUDE = {
     { t: "Sur ordinateur", url: "https://www.youtube.com/watch?v=MfgS0wEQqTw" }
   ],
   aide: "https://support.claude.com/fr/articles/13189465-connectez-vous-a-votre-compte-claude",
+  apps: [
+    { k: "ios", t: "iPhone / iPad", d: "App Store", url: "https://apps.apple.com/app/claude-by-anthropic/id6473753684" },
+    { k: "android", t: "Android", d: "Google Play", url: "https://play.google.com/store/apps/details?id=com.anthropic.claude" },
+    { k: "win", t: "PC Windows", d: "Téléchargement direct", url: "https://claude.ai/api/desktop/win32/x64/setup/latest/redirect" },
+    { k: "mac", t: "Mac", d: "Téléchargement direct", url: "https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect" }
+  ],
+  page: "https://claude.com/download",
   etapes: [
     "Ouvrez claude.ai dans le navigateur (ou installez l'application Claude).",
     "Touchez « Continuer avec Google ».",
