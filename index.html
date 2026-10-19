@@ -191,7 +191,7 @@ table.t th{font-family:var(--display);font-size:12px;letter-spacing:.06em;text-t
 <div id="offline" class="offline" hidden>Hors connexion : vos actions seront envoyées au retour du réseau.</div>
 <main id="app"></main>
 <nav class="bottom" id="nav" hidden><div></div></nav>
-<script src="data.js?v=202610181535"></script>
+<script src="data.js?v=202610191410"></script>
 <script>
 /* ======================================================================
    KENNEDY 3.0 · CEM J.F. Kennedy · ProfDeMaths 2.0
@@ -846,6 +846,10 @@ function vFormateur() {
   const avg = arr => arr.length ? Math.round(arr.reduce((s, x) => s + x, 0) / arr.length) : 0;
   const cells = CELLULES.map(c => ({ c, P: profs.filter(p => p.cellule === c) })).filter(x => x.P.length);
   const bars = (rows) => rows.map(([l, v]) => `<div class="chart-row"><span>${esc(l)}</span><div class="bar"><i style="width:${v}%;background:${v >= 80 ? 'var(--green)' : v >= 40 ? 'var(--gold)' : 'var(--red)'}"></i></div><b>${v}%</b></div>`).join('');
+  const key = p => (String(p.prenom || '') + ' ' + String(p.nom || '')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim(), dup = {};
+  F.profs.forEach(p => dup[key(p)] = (dup[key(p)] || 0) + 1);
+  const nDup = Object.values(dup).filter(n => n > 1).length;
+  const delBtn = p => p.admin ? '' : `<button class="btn sm ghost" style="color:var(--red);border-color:var(--red);margin-top:4px" data-act="f-suppr" data-v="${esc(p.pseudo)}" data-n="${esc(p.prenom + ' ' + p.nom)}">Supprimer</button>`;
   return `<div class="row wrap"><div style="flex:1"><p class="eyebrow">Suivi en direct</p><h1 style="margin-top:6px">Espace formateur</h1></div>
     <button class="btn sm ghost" data-act="f-refresh">Actualiser</button>${DB.profil && DB.profil.formateur ? '' : '<button class="btn sm ghost" data-act="f-out">Quitter</button>'}<button class="btn sm gold" data-act="go" data-v="tableau">Tableau de bord</button></div>
   <div class="grid2">
@@ -853,8 +857,9 @@ function vFormateur() {
     <section class="card"><p class="eyebrow">Missions du parcours</p><h1 style="margin-top:6px">${avg(profs.map(p => Math.round(miss.filter(m => done(p.pseudo, 'mission:' + m.id)).length / miss.length * 100)))}%</h1><p class="small muted">en moyenne</p></section>
     <section class="card"><p class="eyebrow">Tests de positionnement</p><h1 style="margin-top:6px">${profs.filter(p => (LI[p.pseudo] || {}).test).length}</h1><p class="small muted">liens déposés</p></section>
   </div>
+  ${F.admin && nDup ? `<p class="note small"><b>${nDup} nom(s) inscrit(s) deux fois</b> (marqués « Doublon ? » plus bas). Gardez le bon compte et supprimez l'autre avec le bouton Supprimer.</p>` : ''}
   <section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Les formateurs</h2>
-    ${forms.map(p => `<div class="row wrap" style="gap:8px"><b style="flex:1;color:var(--ink)">${esc(p.prenom)} ${esc(p.nom)}</b>${p.admin ? '<span class="pill gold">Formateur principal</span>' : '<span class="pill">Formateur</span>'}${F.admin && !p.admin ? `<button class="btn sm ghost" data-act="f-retirer" data-v="${esc(p.pseudo)}" data-n="${esc(p.prenom)}">Retirer</button>` : ''}</div>`).join('') || '<p class="small muted">—</p>'}
+    ${forms.map(p => `<div class="row wrap" style="gap:8px"><b style="flex:1;color:var(--ink)">${esc(p.prenom)} ${esc(p.nom)}</b>${p.admin ? '<span class="pill gold">Formateur principal</span>' : '<span class="pill">Formateur</span>'}${F.admin && !p.admin ? `<button class="btn sm ghost" data-act="f-retirer" data-v="${esc(p.pseudo)}" data-n="${esc(p.prenom)}">Retirer</button>${delBtn(p)}` : ''}</div>`).join('') || '<p class="small muted">—</p>'}
     ${F.admin ? `<div style="border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:10px"><h3>Inviter un formateur</h3>
       <p class="small muted">Vous seul pouvez inviter. L'invitation sert une seule fois : la personne crée elle-même son compte avec le lien.</p>
       ${DB.profil ? '' : `<p class="note small"><b>Vous êtes entré avec le code administrateur, sans compte.</b> Créez aussi votre compte : onglet Formateur › « J'ai un code d'invitation » et mettez le code administrateur. Vous retrouverez ensuite le suivi sur tous vos appareils.</p>`}
@@ -873,7 +878,7 @@ function vFormateur() {
     <tr><th>Prof</th><th>A1</th><th>A2</th><th>A3</th><th class="hide-sm">Parcours</th><th>Test</th><th>Mini-appli</th></tr>
     ${x.P.map(p => { const l = LI[p.pseudo] || {}, m = Math.round(miss.filter(z => done(p.pseudo, 'mission:' + z.id)).length / miss.length * 100);
       const lk = u => /^https?:\/\//.test(u || '') ? `<a href="${esc(u)}" target="_blank" rel="noopener">Ouvrir</a>` : '—';
-      return `<tr><td><b>${esc(p.prenom)} ${esc(p.nom)}</b>${p.referent ? ' <span class="pill gold">Réf.</span>' : ''}<br><span class="small muted">${esc(p.niveaux)} · vu ${esc(p.vu)}</span></td>
+      return `<tr><td><b>${esc(p.prenom)} ${esc(p.nom)}</b>${p.referent ? ' <span class="pill gold">Réf.</span>' : ''}${dup[key(p)] > 1 ? ' <span class="pill ko">Doublon ?</span>' : ''}<br><span class="small muted">@${esc(p.pseudo)} · ${esc(p.niveaux)} · inscrit ${esc(p.inscrit || '')} · vu ${esc(p.vu)}</span>${F.admin ? '<br>' + delBtn(p) : ''}</td>
       ${ACTIVITES.map(a => { const v = pct(p.pseudo, a); return `<td><span class="pill ${v === 100 ? 'ok' : v ? 'gold' : 'ko'}">${v}%</span></td>` }).join('')}
       <td class="hide-sm">${m}%</td><td>${lk(l.test)}</td><td>${lk(l.miniapp)}</td></tr>` }).join('')}</table></div>
     ${(() => { const c = F.livrables.filter(z => z.cellule === x.c && z.type === 'cdc'); if (!c.length) return '<p class="small muted">Cahier des charges : pas encore déposé.</p>'; let o = {}; try { o = JSON.parse(c[c.length - 1].valeur) } catch (e) {} return `<div class="note small"><b>Cahier des charges</b> · modules : ${esc((o.modules || []).join(', ') || '—')}<br>Priorités : ${esc(o.prio || '—')}<br>Échéancier : ${esc(o.echeancier || '—')}</div>` })()}
@@ -948,6 +953,7 @@ document.addEventListener('click', async e => {
     const r = await api('inviter', Object.assign(auth(), { code: sessionCode(), pour: nm.trim() })); if (!r.ok) { toast(r.erreur || 'Impossible.'); return }
     S.inv = { code: r.code, pour: nm.trim() }; S.invJust = true; return loadF('') }
   if (a === 'f-inv-copy') { copy(invMsg(S.inv.pour, S.inv.code)); return }
+  if (a === 'f-suppr') { if (!confirm('Supprimer définitivement le compte de ' + b.dataset.n + ' (@' + v + ') ?\nSon avancement et ses travaux déposés seront effacés. Ses auto-évaluations anonymes sont conservées.')) return; b.disabled = true; const r = await api('supprimerCompte', Object.assign(auth(), { code: sessionCode(), cible: v })); toast(r.ok ? 'Compte supprimé.' : (r.erreur || 'Impossible.')); return loadF('') }
   if (a === 'f-retirer') { if (!confirm('Retirer le rôle de formateur à ' + b.dataset.n + ' ?')) return; const r = await api('retirerFormateur', Object.assign(auth(), { code: sessionCode(), cible: v })); toast(r.ok ? 'Rôle retiré.' : (r.erreur || 'Impossible.')); return loadF('') }
   if (a === 'st-refresh') { S.st = null; render(); return loadStats() }
   if (a === 'st-ph') { S.stPh = v; return render() }
