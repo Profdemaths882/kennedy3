@@ -191,7 +191,7 @@ table.t th{font-family:var(--display);font-size:12px;letter-spacing:.06em;text-t
 <div id="offline" class="offline" hidden>Hors connexion : vos actions seront envoyées au retour du réseau.</div>
 <main id="app"></main>
 <nav class="bottom" id="nav" hidden><div></div></nav>
-<script src="data.js?v=202610191410"></script>
+<script src="data.js?v=202610191415"></script>
 <script>
 /* ======================================================================
    KENNEDY 3.0 · CEM J.F. Kennedy · ProfDeMaths 2.0
@@ -858,6 +858,11 @@ function vFormateur() {
     <section class="card"><p class="eyebrow">Tests de positionnement</p><h1 style="margin-top:6px">${profs.filter(p => (LI[p.pseudo] || {}).test).length}</h1><p class="small muted">liens déposés</p></section>
   </div>
   ${F.admin && nDup ? `<p class="note small"><b>${nDup} nom(s) inscrit(s) deux fois</b> (marqués « Doublon ? » plus bas). Gardez le bon compte et supprimez l'autre avec le bouton Supprimer.</p>` : ''}
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><div class="row wrap" style="gap:8px"><h2 style="flex:1">Liste des profs inscrits (${profs.length})</h2>${F.admin ? '<span class="small muted">Supprimer un compte en double ou inscrit par erreur</span>' : ''}</div>
+    ${profs.length > 6 ? '<input id="f-cherche" data-act="f-cherche" placeholder="Chercher un nom ou un pseudo…" autocomplete="off">' : ''}
+    <div style="overflow:auto"><table class="t" id="f-liste"><tr><th>#</th><th>Prof</th><th>Cellule</th><th class="hide-sm">Inscrit le</th>${F.admin ? '<th></th>' : ''}</tr>
+    ${profs.slice().sort((a, b) => key(a).localeCompare(key(b))).map((p, i) => `<tr data-k="${esc(key(p) + ' ' + p.pseudo)}"><td>${i + 1}</td><td><b>${esc(p.prenom)} ${esc(p.nom)}</b>${dup[key(p)] > 1 ? ' <span class="pill ko">Doublon ?</span>' : ''}<br><span class="small muted">@${esc(p.pseudo)}</span></td><td class="small">${esc((p.cellule || '').replace(/ · .*/, ''))}<br><span class="muted">${esc(p.disciplines || '')}</span></td><td class="small hide-sm">${esc(p.inscrit || '')}</td>${F.admin ? `<td>${delBtn(p)}</td>` : ''}</tr>`).join('') || '<tr><td colspan="5" class="muted">Aucun prof inscrit.</td></tr>'}
+    </table></div></section>
   <section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Les formateurs</h2>
     ${forms.map(p => `<div class="row wrap" style="gap:8px"><b style="flex:1;color:var(--ink)">${esc(p.prenom)} ${esc(p.nom)}</b>${p.admin ? '<span class="pill gold">Formateur principal</span>' : '<span class="pill">Formateur</span>'}${F.admin && !p.admin ? `<button class="btn sm ghost" data-act="f-retirer" data-v="${esc(p.pseudo)}" data-n="${esc(p.prenom)}">Retirer</button>${delBtn(p)}` : ''}</div>`).join('') || '<p class="small muted">—</p>'}
     ${F.admin ? `<div style="border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:10px"><h3>Inviter un formateur</h3>
@@ -878,7 +883,7 @@ function vFormateur() {
     <tr><th>Prof</th><th>A1</th><th>A2</th><th>A3</th><th class="hide-sm">Parcours</th><th>Test</th><th>Mini-appli</th></tr>
     ${x.P.map(p => { const l = LI[p.pseudo] || {}, m = Math.round(miss.filter(z => done(p.pseudo, 'mission:' + z.id)).length / miss.length * 100);
       const lk = u => /^https?:\/\//.test(u || '') ? `<a href="${esc(u)}" target="_blank" rel="noopener">Ouvrir</a>` : '—';
-      return `<tr><td><b>${esc(p.prenom)} ${esc(p.nom)}</b>${p.referent ? ' <span class="pill gold">Réf.</span>' : ''}${dup[key(p)] > 1 ? ' <span class="pill ko">Doublon ?</span>' : ''}<br><span class="small muted">@${esc(p.pseudo)} · ${esc(p.niveaux)} · inscrit ${esc(p.inscrit || '')} · vu ${esc(p.vu)}</span>${F.admin ? '<br>' + delBtn(p) : ''}</td>
+      return `<tr><td><b>${esc(p.prenom)} ${esc(p.nom)}</b>${p.referent ? ' <span class="pill gold">Réf.</span>' : ''}${dup[key(p)] > 1 ? ' <span class="pill ko">Doublon ?</span>' : ''}<br><span class="small muted">@${esc(p.pseudo)} · ${esc(p.niveaux)} · inscrit ${esc(p.inscrit || '')} · vu ${esc(p.vu)}</span></td>
       ${ACTIVITES.map(a => { const v = pct(p.pseudo, a); return `<td><span class="pill ${v === 100 ? 'ok' : v ? 'gold' : 'ko'}">${v}%</span></td>` }).join('')}
       <td class="hide-sm">${m}%</td><td>${lk(l.test)}</td><td>${lk(l.miniapp)}</td></tr>` }).join('')}</table></div>
     ${(() => { const c = F.livrables.filter(z => z.cellule === x.c && z.type === 'cdc'); if (!c.length) return '<p class="small muted">Cahier des charges : pas encore déposé.</p>'; let o = {}; try { o = JSON.parse(c[c.length - 1].valeur) } catch (e) {} return `<div class="note small"><b>Cahier des charges</b> · modules : ${esc((o.modules || []).join(', ') || '—')}<br>Priorités : ${esc(o.prio || '—')}<br>Échéancier : ${esc(o.echeancier || '—')}</div>` })()}
@@ -926,6 +931,8 @@ const waBtn = (cls) => `<a class="btn ${cls || ''}" style="background:#25D366;co
 
 /* ======================= ACTIONS ======================= */
 function aeDraft() { if (!S.ae) return; DB.aeDraft = DB.aeDraft || {}; DB.aeDraft[S.ae.ph] = Object.assign({}, S.ae); save() }
+document.addEventListener('input', e => { if (e.target.id !== 'f-cherche') return; const q = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  document.querySelectorAll('#f-liste tr[data-k]').forEach(tr => tr.hidden = !!q && !tr.dataset.k.includes(q)) });
 document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.ae; if (k && S.ae) { S.ae[k] = e.target.value; aeDraft() }
   const t = e.target.dataset && e.target.dataset.tr; if (t && S.tr) { S.tr.v[t] = e.target.value; trUpdateScore() } });
 document.addEventListener('change', e => { const t = e.target.dataset && e.target.dataset.tr; if (t && S.tr) { S.tr.v[t] = e.target.value; trUpdateScore() }
