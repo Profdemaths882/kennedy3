@@ -32,7 +32,7 @@ const AUTOEVAL = {
 const JOUR = { date: "2026-10-20", label: "Mardi 20 octobre 2026", lieu: "Salle multimédia du CEM J.F. Kennedy" };
 const PROGRAMME = [
   { h: "09:00", f: "09:20", t: "Accueil et auto-évaluation d'entrée", d: "Auto-évaluation à faire de préférence avant le jour J (sinon à l'accueil), s'installer, vérifier ses comptes", go: "evaluations" },
-  { h: "09:20", f: "09:45", t: "Cérémonie d'ouverture", d: "Autorités académiques, administration" },
+  { h: "09:20", f: "09:45", t: "Cérémonie d'ouverture", d: "Allocution de M. l'Inspecteur d'Académie, mot du Principal" },
   { h: "09:45", f: "10:15", t: "Du Google Forms à l'IA", d: "Bilan 2025-2026, les quatre objectifs, le kit de chaque prof", go: "objectifs" },
   { h: "10:15", f: "10:45", t: "Pause petit-déjeuner", pause: true },
   { h: "10:45", f: "11:15", t: "Démonstrations", d: "ProfDeMaths 2.0 et la journée d'un prof automatisé", go: "methode" },
