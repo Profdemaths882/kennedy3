@@ -549,3 +549,140 @@ function dateFr(s) {
   const mois = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
   return (+m[3]) + " " + mois[+m[2] - 1] + " " + m[1];
 }
+
+/* ---------- Banque de prompts (prêts à l'emploi, personnalisés avec le profil) ----------
+   Variables : {discipline} {niveaux} {classes} {etab} {appli} {prenom} {nom}  */
+const BANQUE = [
+  { id: 'annee', t: "1 · Mon année", d: "À coller dans votre projet Claude, dans l'ordre. Chaque demande s'appuie sur les documents déposés dans le projet (emploi du temps, programmes, progression, manuels).", p: [
+    { t: "Les instructions de mon projet", q: "Une seule fois, dans « Instructions » du projet Claude", x:
+`Tu es mon assistant pédagogique pour l'année scolaire 2026-2027.
+Je suis professeur {de_discipline} au {etab}, en {niveaux} (classes : {classes}).
+
+Ce que tu dois savoir :
+- Mon emploi du temps, les programmes officiels, la progression harmonisée de ma cellule et mes manuels sont dans les fichiers du projet. Appuie-toi d'abord sur eux.
+- Mes élèves sont des collégiens sénégalais : exemples, prénoms et situations du Sénégal, français simple et correct.
+- Respecte strictement le programme et la progression harmonisée ; si une demande en sort, dis-le.
+- Présente toujours : objectifs, contenu, puis ce que je dois vérifier.
+- Aucune donnée personnelle d'élève : j'utiliserai des codes ou des prénoms fictifs.
+- Si une information te manque, pose-moi une question au lieu d'inventer.` },
+    { t: "Mon emploi du temps dans Google Agenda", q: "Connecteur Google Agenda activé", x:
+`À partir de mon emploi du temps (fichier du projet), crée dans mon Google Agenda tous mes cours {de_discipline} de la semaine type, du lundi au samedi, récurrents chaque semaine jusqu'au 30 juin 2027.
+Pour chaque cours : titre « {discipline} · [classe] », salle si elle est indiquée, rappel 15 minutes avant.
+Avant de créer quoi que ce soit, montre-moi le tableau des créneaux que tu as lus et attends ma validation.` },
+    { t: "Ma progression de l'année, semaine par semaine", q: "Début d'année ou de trimestre", x:
+`À partir du programme officiel et de la progression harmonisée de la cellule (fichiers du projet), établis ma progression annuelle {de_discipline} pour la classe de [NIVEAU].
+Tableau : semaine (dates), chapitre, leçons, nombre d'heures, compétences exigibles, évaluation prévue.
+Tiens compte des congés scolaires 2026-2027 et des évaluations harmonisées. Signale les semaines trop chargées.` },
+    { t: "La fiche de préparation d'une leçon", q: "Chaque semaine, pour chaque leçon", x:
+`Prépare la fiche de leçon {de_discipline} en [NIVEAU] : « [TITRE DE LA LEÇON] » (durée : [DURÉE] min).
+Plan : objectifs spécifiques (verbes d'action), prérequis, matériel, déroulement minuté (rappel, découverte, trace écrite, application, évaluation), trace écrite complète pour le cahier de l'élève, exercices d'application avec corrigé, devoir de maison.
+Utilise mon manuel (fichier du projet) et des exemples du contexte sénégalais.` },
+    { t: "Résumé, carte mentale et flashcards", q: "Fin de chapitre, révisions", x:
+`Pour le chapitre « [CHAPITRE] » {de_discipline} en [NIVEAU] :
+1. Un résumé d'une page : définitions, propriétés ou règles, méthodes, un exemple pour chaque.
+2. Une carte mentale en texte (thème central, branches, sous-branches) que je pourrai dessiner ou transformer en image.
+3. 15 flashcards « question / réponse » courtes, de la plus facile à la plus difficile.
+Tout doit respecter le programme de [NIVEAU] ; rien hors programme.` },
+    { t: "Des exercices pour les trois groupes de besoin", q: "Après un test ou une évaluation", x:
+`Sur la leçon « [LEÇON] » {de_discipline} en [NIVEAU], propose trois séries d'exercices :
+- Groupe 1 · Remédiation : retour aux bases, exercices guidés pas à pas.
+- Groupe 2 · Application : exercices du niveau attendu.
+- Groupe 3 · Approfondissement : problèmes plus ouverts, situations de la vie courante au Sénégal.
+5 exercices par série, avec le corrigé détaillé à la fin.` },
+    { t: "Une évaluation à partir des compétences exigibles", q: "Devoir, interrogation, évaluation du mois", x:
+`Rédige une évaluation {de_discipline} en [NIVEAU] sur « [CHAPITRE(S)] », durée [DURÉE], notée sur 20.
+1. Liste d'abord les compétences exigibles évaluées (programme officiel).
+2. Partie I : 10 questions à choix multiples (4 propositions, une seule bonne).
+3. Partie II : exercices rédigés, du plus simple au plus complexe.
+4. Le barème détaillé et le corrigé complet.
+Présentation au format officiel du {etab} : en-tête, classe, durée, consignes.` },
+    { t: "Mon évaluation dans Google Forms (Apps Script)", q: "Après avoir validé les questions", x:
+`Voici mes questions validées (ci-dessous). Écris un script Google Apps Script qui crée un Google Form en mode quiz :
+- titre « {discipline} · [NIVEAU] · [TITRE] », description avec les consignes ;
+- une question à choix multiples par question, la bonne réponse et les points indiqués ;
+- collecte du nom de l'élève et de la classe en début de formulaire ;
+- les réponses enregistrées dans une feuille Google Sheets liée.
+Explique-moi en 5 étapes simples où coller le script et comment l'exécuter.
+
+[COLLER ICI MES QUESTIONS VALIDÉES]` },
+    { t: "Le test de positionnement de ma classe", q: "Début d'année, par niveau", x:
+`Construis le test de positionnement {de_discipline} pour l'entrée en [NIVEAU], sur les compétences de la classe précédente qui sont indispensables cette année.
+- 25 questions courtes à choix multiples, classées par compétence (indique la compétence à chaque question) ;
+- la grille de lecture : 0 à 12 = Remédiation, 13 à 19 = Application, 20 à 25 = Approfondissement ;
+- pour chaque compétence ratée, une activité de remédiation de 15 minutes.` },
+    { t: "Analyser les notes et former les groupes", q: "Connecteur Google Drive ou fichier des notes anonymisé", x:
+`Analyse le fichier des résultats de ma classe de [CLASSE] (élèves identifiés par un code, sans nom).
+1. Moyenne, note la plus haute, la plus basse, nombre d'élèves sous 10.
+2. Les questions ou compétences les moins réussies.
+3. Trois groupes de besoin (moins de 10, de 10 à 15, 16 et plus) avec la liste des codes.
+4. Un plan de remédiation de 2 semaines pour le groupe 1 (2 heures par semaine).` },
+    { t: "Le cahier de textes pour PLANETE 3.0", q: "Après chaque séance · saisie assistée", x:
+`Rédige l'entrée du cahier de textes de la séance {de_discipline} en [CLASSE] du [DATE] : titre de la leçon, contenu traité (3 à 5 lignes), exercices faits en classe, travail à faire pour la prochaine séance.
+Style sobre et administratif, prêt à être collé dans PLANETE 3.0.
+Rappel : je me connecte moi-même à PLANETE, je colle et je valide ; je ne donne jamais mon mot de passe.` },
+    { t: "Une composition au format officiel", q: "Fin de semestre", x:
+`Prépare le sujet de composition du [1er/2nd] semestre {de_discipline} en [NIVEAU], durée [DURÉE], sur les chapitres : [CHAPITRES].
+Respecte le format des compositions de l'IA de Dakar : en-tête, parties, barème par question, total sur 20.
+Donne ensuite le corrigé détaillé et le barème de correction pour harmoniser la notation entre collègues.` }
+  ] },
+  { id: 'appli', t: "2 · L'appli de ma cellule", d: "Sur le modèle de ProfDeMaths 2.0. Une conversation Claude par étape, dans le projet de la cellule. Claude écrit le code ; la cellule valide chaque contenu.", p: [
+    { t: "Le cahier des charges", q: "Étape 1 · en cellule", x:
+`Nous sommes la cellule {de_discipline} du {etab}. Nous voulons une application éducative pour nos élèves de {niveaux}, sur le modèle de ProfDeMaths 2.0.
+Rédige le cahier des charges : public, objectifs pédagogiques, modules (cours, entraînement, quiz, évaluation, test de positionnement, devoirs en photo, espace professeur), contraintes (téléphone, connexion faible, gratuit, sans données personnelles inutiles), priorités et échéancier sur 3 mois.
+Pose-nous d'abord 5 questions pour préciser nos besoins.` },
+    { t: "La structure de l'application", q: "Étape 2", x:
+`À partir du cahier des charges validé, crée la première version de l'application « {appli} » :
+- une seule page HTML autonome (HTML, CSS et JavaScript dans le même fichier), installable sur téléphone (PWA) ;
+- accueil, choix du niveau ({niveaux}), liste des chapitres, et pour chaque chapitre 4 étapes : Cours → S'entraîner → Quiz → Évaluation ;
+- grands boutons, lisible sur petit téléphone, bouton Retour sur chaque écran ;
+- couleurs sobres et le nom du {etab}.
+Mets un seul chapitre d'exemple ; nous ajouterons les autres ensuite.` },
+    { t: "Le cours d'un chapitre", q: "Étape 3 · pour chaque chapitre", x:
+`Rédige le cours du chapitre « [CHAPITRE] » {de_discipline} en [NIVEAU] pour l'application : leçon courte en paragraphes, encadrés « Définition », « À retenir », « Méthode », un exemple corrigé après chaque notion, conforme au programme et à la progression harmonisée.
+Donne le contenu au format attendu par l'application (même structure que le chapitre d'exemple) pour que je n'aie qu'à le coller.` },
+    { t: "Les exercices corrigés pas à pas", q: "Étape 4", x:
+`Pour le chapitre « [CHAPITRE] » en [NIVEAU], écris 10 exercices de l'étape « S'entraîner » : énoncé, aide (un indice), correction pas à pas, de difficulté croissante. Contexte sénégalais.
+Ajoute-les dans l'application, au même format que le chapitre d'exemple.` },
+    { t: "Le quiz qui débloque l'évaluation", q: "Étape 5", x:
+`Écris le quiz du chapitre « [CHAPITRE] » en [NIVEAU] : 20 questions à choix multiples (4 propositions, une seule bonne), avec une explication courte de la bonne réponse et la compétence visée.
+Dans l'application : questions et propositions mélangées à chaque essai, score affiché à la fin, l'évaluation ne se débloque qu'avec 14/20 ou plus.` },
+    { t: "L'évaluation et la fiche de résultats", q: "Étape 6", x:
+`Ajoute l'évaluation notée sur 20 du chapitre « [CHAPITRE] » : questions variées, correction automatique, puis une fiche de résultats à l'en-tête du {etab} (nom, classe, chapitre, note, date, compétences à revoir) que l'élève peut envoyer au professeur par WhatsApp ou en capture d'écran.` },
+    { t: "Le test de positionnement et les groupes de besoin", q: "Étape 7", x:
+`Ajoute dans l'application le test de positionnement de chaque niveau ({niveaux}) : 25 questions sur les compétences de l'année précédente, obligatoire avant le reste.
+Après le test : groupe Remédiation (0 à 12), Application (13 à 19) ou Approfondissement (20 à 25), affiché à l'élève avec son plan de révision. Le groupe se met à jour après chaque évaluation du mois.` },
+    { t: "Les comptes élèves et le suivi des résultats", q: "Étape 8 · Google Apps Script + Google Sheets", x:
+`Ajoute des comptes élèves : pseudo unique + code secret à 4 chiffres (jamais stocké en clair), prénom, nom, classe.
+Écris aussi le serveur en Google Apps Script relié à une feuille Google Sheets : inscription, connexion, enregistrement de chaque quiz et évaluation (date, élève, classe, chapitre, note).
+Explique-moi pas à pas comment déployer le script en « Application Web » et où coller son adresse dans l'application.` },
+    { t: "L'espace professeur : listes, code de classe, élèves HK", q: "Étape 9", x:
+`Ajoute un espace professeur protégé : chaque professeur a son compte et ne voit que ses classes ({classes}).
+- Résultats par élève et par chapitre, export pour Excel ou Sheets.
+- Listes de classe imprimables avec le groupe de besoin de chaque élève.
+- Un code de classe à donner en classe : sans lui, on ne peut pas s'inscrire comme élève du {etab}.
+- Les élèves venant d'autres établissements sont rangés à part, en classes « HK » (6e HK à 3e HK), avec leur école d'origine.` },
+    { t: "Les devoirs à rendre en photo", q: "Étape 10", x:
+`Ajoute les devoirs à rendre en photo : le professeur publie un devoir (énoncé, classe, date limite, barème) ; l'élève rédige sur son cahier et envoie jusqu'à 4 photos, compressées sur le téléphone avant l'envoi.
+Les photos sont rangées dans un dossier Google Drive du professeur ; il corrige dans l'application (note + commentaire) et l'élève voit sa copie corrigée.` },
+    { t: "La progression harmonisée et « À retenir cette semaine »", q: "Étape 11", x:
+`Ajoute la progression harmonisée {de_discipline} ({niveaux}) : pour chaque chapitre, les semaines prévues.
+- Côté professeur : boutons « Commencé » / « Terminé » et une alerte « à jour / léger retard / en retard ».
+- Côté élève : un encadré « À retenir cette semaine » (définitions, règles, formules du chapitre en cours) et un compte à rebours avant chaque évaluation.
+Voici notre progression : [COLLER LA PROGRESSION HARMONISÉE]` },
+    { t: "Mettre l'application en ligne", q: "Étape 12 · GitHub Pages", x:
+`Explique-moi pas à pas, pour un débutant sur téléphone ou ordinateur, comment mettre « {appli} » en ligne gratuitement avec GitHub Pages : créer le compte, le dépôt, déposer les fichiers, activer Pages, obtenir le lien.
+Puis comment l'élève l'installe sur son téléphone (« Ajouter à l'écran d'accueil »), et comment je publie une mise à jour.` },
+    { t: "Corriger un problème ou ajouter une fonction", q: "À tout moment", x:
+`Voici le code actuel de « {appli} » (fichier joint).
+Problème constaté : [DÉCRIRE CE QUI SE PASSE, SUR QUEL ÉCRAN, SUR QUEL TÉLÉPHONE].
+Ce que je voudrais : [DÉCRIRE LE RÉSULTAT ATTENDU].
+Corrige sans rien casser d'autre, explique en une phrase ce que tu as changé, et rends-moi le fichier complet.` },
+    { t: "La vérification avant de publier", q: "Avant chaque mise en ligne", x:
+`Relis l'application « {appli} » comme un inspecteur et un élève de {niveaux} :
+1. erreurs de contenu ou hors programme ;
+2. fautes d'orthographe ;
+3. boutons qui ne marchent pas, écrans illisibles sur petit téléphone ;
+4. données personnelles inutiles.
+Fais la liste par ordre de gravité, puis propose les corrections.` }
+  ] }
+];
