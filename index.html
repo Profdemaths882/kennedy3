@@ -191,7 +191,7 @@ table.t th{font-family:var(--display);font-size:12px;letter-spacing:.06em;text-t
 <div id="offline" class="offline" hidden>Hors connexion : vos actions seront envoyées au retour du réseau.</div>
 <main id="app"></main>
 <nav class="bottom" id="nav" hidden><div></div></nav>
-<script src="data.js?v=202610181535"></script>
+<script src="data.js?v=202610200815"></script>
 <script>
 /* ======================================================================
    KENNEDY 3.0 · CEM J.F. Kennedy · ProfDeMaths 2.0
@@ -349,6 +349,7 @@ function vHome() {
     { v: 'compte', i: 'qr', c: '', t: 'Partager Kennedy 3.0', d: 'Message WhatsApp prêt pour les collègues' },
     ...(P.formateur ? [{ v: 'formateur', i: 'team', c: 'o', t: 'Espace formateur', d: 'Suivi en direct de tous les profs' }, { v: 'corrections', i: 'check', c: 'g', t: 'Corriger les travaux', d: 'Notes automatiques, validation, commentaires' }] : [{ v: 'travaux', i: 'check', c: 'g', t: 'Mes travaux', d: 'Déposer, note automatique sur 20' }]),
     { v: 'kit', i: 'bag', c: '', t: 'Mon kit', d: `${KIT.filter(k => isDone('kit:' + k.k)).length} / ${KIT.length} éléments prêts` },
+    { v: 'prompts', i: 'book', c: 'g', t: 'Banque de prompts', d: "Automatiser l'année, créer l'appli de la cellule : prêts à copier" },
     { v: 'atelier', i: 'spark', c: 'o', t: "L'atelier Claude", d: 'La bonne demande et les consignes pour chaque tâche' },
     { v: 'methode', i: 'layers', c: 'g', t: 'La méthode ProfDeMaths', d: 'Le traitement des connaissances, étape par étape' },
     { v: 'cellule', i: 'team', c: '', t: 'Ma cellule', d: 'Livrables, liens, cahier des charges' },
@@ -659,6 +660,30 @@ function vCorrections() {
     : `<section class="card"><p class="muted">Aucun travail déposé pour ${esc(T.act)} pour le moment.</p></section>`);
 }
 
+/* ---------- banque de prompts ---------- */
+function pbVals() { const P = DB.profil || {}, s = DB.pb || {}, disc = s.discipline != null ? s.discipline : (P.disciplines || '');
+  return { discipline: disc, niveaux: s.niveaux != null ? s.niveaux : String(P.niveaux || '').split(',').filter(Boolean).join(', '), classes: s.classes || '', etab: s.etab != null ? s.etab : 'CEM J.F. Kennedy de Dakar',
+    appli: s.appli != null ? s.appli : (disc ? 'Prof ' + deX(disc.split(/[,·]/)[0].trim()) + ' 2.0' : ''), prenom: P.prenom || '', nom: P.nom || '' } }
+function deX(x) { x = String(x || '').trim(); return /^[aeiouyhàâéèêîïôûAEIOUYHÀÂÉÈÊÎÏÔÛ]/.test(x) ? "d'" + x : 'de ' + x }
+const PB_LAB = { discipline: 'MA DISCIPLINE', niveaux: 'MES NIVEAUX', classes: 'MES CLASSES', etab: 'MON ÉTABLISSEMENT', appli: "NOM DE L'APPLICATION", prenom: 'PRÉNOM', nom: 'NOM' };
+function pbFill(x) { const v = pbVals(); v.de_discipline = v.discipline.trim() ? deX(v.discipline) : 'de [MA DISCIPLINE]'; return x.replace(/\{(\w+)\}/g, (m, k) => (v[k] || '').trim() || '[' + (PB_LAB[k] || k.toUpperCase()) + ']') }
+function vPrompts() {
+  const v = pbVals(), part = BANQUE.find(b => b.id === S.pbPart) || BANQUE[0];
+  const inp = (k, l, ph) => `<label class="small form" style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px"><b style="color:var(--ink)">${l}</b><input data-pb="${k}" value="${esc(v[k])}" placeholder="${esc(ph)}"></label>`;
+  return `<div><p class="eyebrow">Documentation pour les collègues</p><h1 style="margin-top:6px">Banque de prompts</h1>
+  <p class="muted" style="margin-top:6px">Des demandes prêtes à l'emploi : d'abord pour automatiser votre année, ensuite pour créer l'application de votre cellule sur le modèle de ProfDeMaths 2.0. Remplissez une fois vos informations : elles s'écrivent dans tous les prompts.</p></div>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px;border-top:6px solid var(--gold)"><h2>Mes informations</h2>
+    <div class="row wrap" style="gap:10px">${inp('discipline', 'Discipline', 'Ex. : Anglais')}${inp('niveaux', 'Niveaux', 'Ex. : 6e, 5e')}${inp('classes', 'Classes', 'Ex. : 6e A, 6e B, 5e C')}</div>
+    <div class="row wrap" style="gap:10px">${inp('etab', 'Établissement', 'CEM J.F. Kennedy de Dakar')}${inp('appli', "Nom de l'application (partie 2)", 'Ex. : Prof d’Anglais 2.0')}</div>
+    <p class="small muted">Les passages entre crochets, comme <b>[NIVEAU]</b> ou <b>[CHAPITRE]</b>, sont à compléter à chaque utilisation.</p></section>
+  <div class="tabs">${BANQUE.map(b => `<button class="${b.id === part.id ? 'on' : ''}" data-act="pb-part" data-v="${b.id}">${esc(b.t)}</button>`).join('')}</div>
+  <div class="row wrap" style="gap:10px;align-items:center"><p class="small muted" style="flex:1;min-width:220px">${esc(part.d)}</p><button class="btn sm ghost" data-act="pb-all">Copier les ${part.p.length} prompts</button></div>
+  ${part.p.map((p, i) => `<section class="card" style="display:flex;flex-direction:column;gap:10px">
+    <div class="row" style="gap:12px;align-items:flex-start"><span class="ic o" style="font-family:var(--display);font-weight:900;flex:none">${i + 1}</span><div style="flex:1;min-width:0"><h3>${esc(p.t)}</h3><p class="small muted">${esc(p.q)}</p></div></div>
+    <pre class="pbx" id="pb-${i}" data-i="${i}" style="white-space:pre-wrap;word-break:break-word;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;font-size:14.5px;line-height:1.5;margin:0;color:var(--ink)">${esc(pbFill(p.x))}</pre>
+    <div class="row wrap" style="gap:8px"><button class="btn gold sm" data-act="pb-copy" data-i="${i}">Copier le prompt</button><a class="btn ghost sm pbo" data-i="${i}" href="https://claude.ai/new?q=${encodeURIComponent(pbFill(p.x))}" target="_blank" rel="noopener">Ouvrir dans Claude</a></div></section>`).join('')}
+  <p class="note small"><b>Rappel :</b> relisez toujours ce que Claude produit avant de l'utiliser en classe, et n'y mettez jamais de données personnelles d'élèves.</p>`;
+}
 function myDevice() { const ua = navigator.userAgent; return /iPhone|iPad|iPod/.test(ua) ? 'ios' : /Android/.test(ua) ? 'android' : /Mac/.test(ua) ? 'mac' : /Windows/.test(ua) ? 'win' : '' }
 function claudeAppBtn(cls) { const a = COMPTE_CLAUDE.apps.find(x => x.k === myDevice()); return a ? `<a class="btn ${cls || 'gold'}" href="${esc(a.url)}" target="_blank" rel="noopener">⬇ Télécharger Claude (${esc(a.t)})</a>` : `<a class="btn ${cls || 'gold'}" href="${esc(COMPTE_CLAUDE.page)}" target="_blank" rel="noopener">⬇ Télécharger Claude</a>` }
 function vClaudeCompte() {
@@ -703,6 +728,7 @@ function vAct(id) {
 function vAtelier() {
   return `<div><p class="eyebrow">Pour tout ce que vous faites avec Claude</p><h1 style="margin-top:6px">L'atelier Claude</h1>
   <p class="muted" style="margin-top:6px">Choisissez une tâche : l'application prépare la demande à copier dans votre projet Claude, avec les consignes et ce qu'il faut vérifier.</p></div>
+ <button class="btn gold" style="align-self:flex-start" data-act="go" data-v="prompts">${ic('book', 18)} Banque de prompts : automatiser l'année, créer l'application</button>
   <div class="tabs">${GROUPES.map(g => `<button class="${S.grp === g.id ? 'on' : ''}" data-act="grp" data-v="${g.id}">${esc(g.t)}</button>`).join('')}</div>
   <p class="small muted">${esc((GROUPES.find(g => g.id === S.grp) || {}).d || '')}</p>
   <div class="grid2">${TACHES.filter(t => t.g === S.grp).map(t => `<button class="tile" data-act="tache" data-v="${t.id}">
@@ -846,6 +872,10 @@ function vFormateur() {
   const avg = arr => arr.length ? Math.round(arr.reduce((s, x) => s + x, 0) / arr.length) : 0;
   const cells = CELLULES.map(c => ({ c, P: profs.filter(p => p.cellule === c) })).filter(x => x.P.length);
   const bars = (rows) => rows.map(([l, v]) => `<div class="chart-row"><span>${esc(l)}</span><div class="bar"><i style="width:${v}%;background:${v >= 80 ? 'var(--green)' : v >= 40 ? 'var(--gold)' : 'var(--red)'}"></i></div><b>${v}%</b></div>`).join('');
+  const key = p => (String(p.prenom || '') + ' ' + String(p.nom || '')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim(), dup = {};
+  F.profs.forEach(p => dup[key(p)] = (dup[key(p)] || 0) + 1);
+  const nDup = Object.values(dup).filter(n => n > 1).length;
+  const delBtn = p => p.admin ? '' : `<button class="btn sm ghost" style="color:var(--red);border-color:var(--red);margin-top:4px" data-act="f-suppr" data-v="${esc(p.pseudo)}" data-n="${esc(p.prenom + ' ' + p.nom)}">Supprimer</button>`;
   return `<div class="row wrap"><div style="flex:1"><p class="eyebrow">Suivi en direct</p><h1 style="margin-top:6px">Espace formateur</h1></div>
     <button class="btn sm ghost" data-act="f-refresh">Actualiser</button>${DB.profil && DB.profil.formateur ? '' : '<button class="btn sm ghost" data-act="f-out">Quitter</button>'}<button class="btn sm gold" data-act="go" data-v="tableau">Tableau de bord</button></div>
   <div class="grid2">
@@ -853,8 +883,14 @@ function vFormateur() {
     <section class="card"><p class="eyebrow">Missions du parcours</p><h1 style="margin-top:6px">${avg(profs.map(p => Math.round(miss.filter(m => done(p.pseudo, 'mission:' + m.id)).length / miss.length * 100)))}%</h1><p class="small muted">en moyenne</p></section>
     <section class="card"><p class="eyebrow">Tests de positionnement</p><h1 style="margin-top:6px">${profs.filter(p => (LI[p.pseudo] || {}).test).length}</h1><p class="small muted">liens déposés</p></section>
   </div>
+  ${F.admin && nDup ? `<p class="note small"><b>${nDup} nom(s) inscrit(s) deux fois</b> (marqués « Doublon ? » plus bas). Gardez le bon compte et supprimez l'autre avec le bouton Supprimer.</p>` : ''}
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><div class="row wrap" style="gap:8px"><h2 style="flex:1">Liste des profs inscrits (${profs.length})</h2>${F.admin ? '<span class="small muted">Supprimer un compte en double ou inscrit par erreur</span>' : ''}</div>
+    ${profs.length > 6 ? '<input id="f-cherche" data-act="f-cherche" placeholder="Chercher un nom ou un pseudo…" autocomplete="off">' : ''}
+    <div style="overflow:auto"><table class="t" id="f-liste"><tr><th>#</th><th>Prof</th><th>Cellule</th><th class="hide-sm">Inscrit le</th>${F.admin ? '<th></th>' : ''}</tr>
+    ${profs.slice().sort((a, b) => key(a).localeCompare(key(b))).map((p, i) => `<tr data-k="${esc(key(p) + ' ' + p.pseudo)}"><td>${i + 1}</td><td><b>${esc(p.prenom)} ${esc(p.nom)}</b>${dup[key(p)] > 1 ? ' <span class="pill ko">Doublon ?</span>' : ''}<br><span class="small muted">@${esc(p.pseudo)}</span></td><td class="small">${esc((p.cellule || '').replace(/ · .*/, ''))}<br><span class="muted">${esc(p.disciplines || '')}</span></td><td class="small hide-sm">${esc(p.inscrit || '')}</td>${F.admin ? `<td>${delBtn(p)}</td>` : ''}</tr>`).join('') || '<tr><td colspan="5" class="muted">Aucun prof inscrit.</td></tr>'}
+    </table></div></section>
   <section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>Les formateurs</h2>
-    ${forms.map(p => `<div class="row wrap" style="gap:8px"><b style="flex:1;color:var(--ink)">${esc(p.prenom)} ${esc(p.nom)}</b>${p.admin ? '<span class="pill gold">Formateur principal</span>' : '<span class="pill">Formateur</span>'}${F.admin && !p.admin ? `<button class="btn sm ghost" data-act="f-retirer" data-v="${esc(p.pseudo)}" data-n="${esc(p.prenom)}">Retirer</button>` : ''}</div>`).join('') || '<p class="small muted">—</p>'}
+    ${forms.map(p => `<div class="row wrap" style="gap:8px"><b style="flex:1;color:var(--ink)">${esc(p.prenom)} ${esc(p.nom)}</b>${p.admin ? '<span class="pill gold">Formateur principal</span>' : '<span class="pill">Formateur</span>'}${F.admin && !p.admin ? `<button class="btn sm ghost" data-act="f-retirer" data-v="${esc(p.pseudo)}" data-n="${esc(p.prenom)}">Retirer</button>${delBtn(p)}` : ''}</div>`).join('') || '<p class="small muted">—</p>'}
     ${F.admin ? `<div style="border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:10px"><h3>Inviter un formateur</h3>
       <p class="small muted">Vous seul pouvez inviter. L'invitation sert une seule fois : la personne crée elle-même son compte avec le lien.</p>
       ${DB.profil ? '' : `<p class="note small"><b>Vous êtes entré avec le code administrateur, sans compte.</b> Créez aussi votre compte : onglet Formateur › « J'ai un code d'invitation » et mettez le code administrateur. Vous retrouverez ensuite le suivi sur tous vos appareils.</p>`}
@@ -873,7 +909,7 @@ function vFormateur() {
     <tr><th>Prof</th><th>A1</th><th>A2</th><th>A3</th><th class="hide-sm">Parcours</th><th>Test</th><th>Mini-appli</th></tr>
     ${x.P.map(p => { const l = LI[p.pseudo] || {}, m = Math.round(miss.filter(z => done(p.pseudo, 'mission:' + z.id)).length / miss.length * 100);
       const lk = u => /^https?:\/\//.test(u || '') ? `<a href="${esc(u)}" target="_blank" rel="noopener">Ouvrir</a>` : '—';
-      return `<tr><td><b>${esc(p.prenom)} ${esc(p.nom)}</b>${p.referent ? ' <span class="pill gold">Réf.</span>' : ''}<br><span class="small muted">${esc(p.niveaux)} · vu ${esc(p.vu)}</span></td>
+      return `<tr><td><b>${esc(p.prenom)} ${esc(p.nom)}</b>${p.referent ? ' <span class="pill gold">Réf.</span>' : ''}${dup[key(p)] > 1 ? ' <span class="pill ko">Doublon ?</span>' : ''}<br><span class="small muted">@${esc(p.pseudo)} · ${esc(p.niveaux)} · inscrit ${esc(p.inscrit || '')} · vu ${esc(p.vu)}</span></td>
       ${ACTIVITES.map(a => { const v = pct(p.pseudo, a); return `<td><span class="pill ${v === 100 ? 'ok' : v ? 'gold' : 'ko'}">${v}%</span></td>` }).join('')}
       <td class="hide-sm">${m}%</td><td>${lk(l.test)}</td><td>${lk(l.miniapp)}</td></tr>` }).join('')}</table></div>
     ${(() => { const c = F.livrables.filter(z => z.cellule === x.c && z.type === 'cdc'); if (!c.length) return '<p class="small muted">Cahier des charges : pas encore déposé.</p>'; let o = {}; try { o = JSON.parse(c[c.length - 1].valeur) } catch (e) {} return `<div class="note small"><b>Cahier des charges</b> · modules : ${esc((o.modules || []).join(', ') || '—')}<br>Priorités : ${esc(o.prio || '—')}<br>Échéancier : ${esc(o.echeancier || '—')}</div>` })()}
@@ -887,7 +923,7 @@ function sessionCode() { try { return sessionStorage.getItem('k3_fcode') || '' }
 function render() {
   const logged = !!DB.profil;
   if (!logged && !['auth', 'formateur'].includes(S.v)) S.v = 'auth';
-  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur, autoeval: () => vAutoeval(S.p), tableau: vTableau, claudecompte: vClaudeCompte, travaux: vTravaux, travail: () => vTravail(S.p), corrections: vCorrections };
+  const views = { auth: vAuth, home: vHome, jour: vJour, objectifs: vObjectifs, kit: vKit, evaluations: vEvaluations, act: () => vAct(S.p), atelier: vAtelier, tache: () => vTache(S.p), methode: vMethode, parcours: vParcours, cellule: vCellule, regles: vRegles, compte: vCompte, formateur: vFormateur, autoeval: () => vAutoeval(S.p), tableau: vTableau, claudecompte: vClaudeCompte, travaux: vTravaux, travail: () => vTravail(S.p), corrections: vCorrections, prompts: vPrompts };
   $('#app').innerHTML = (views[S.v] || vHome)();
   const bb = $('#backbtn'), atRoot = (logged && S.v === 'home') || (!logged && S.v === 'auth');
   bb.hidden = atRoot; bb.innerHTML = ic('back', 22);
@@ -921,6 +957,11 @@ const waBtn = (cls) => `<a class="btn ${cls || ''}" style="background:#25D366;co
 
 /* ======================= ACTIONS ======================= */
 function aeDraft() { if (!S.ae) return; DB.aeDraft = DB.aeDraft || {}; DB.aeDraft[S.ae.ph] = Object.assign({}, S.ae); save() }
+document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.pb; if (!k) return; DB.pb = DB.pb || {}; DB.pb[k] = e.target.value; save();
+  const part = BANQUE.find(x => x.id === S.pbPart) || BANQUE[0];
+  document.querySelectorAll('pre.pbx').forEach(el => { const t = pbFill(part.p[+el.dataset.i].x); el.textContent = t; const a = document.querySelector('a.pbo[data-i="' + el.dataset.i + '"]'); if (a) a.href = 'https://claude.ai/new?q=' + encodeURIComponent(t) }) });
+document.addEventListener('input', e => { if (e.target.id !== 'f-cherche') return; const q = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  document.querySelectorAll('#f-liste tr[data-k]').forEach(tr => tr.hidden = !!q && !tr.dataset.k.includes(q)) });
 document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.ae; if (k && S.ae) { S.ae[k] = e.target.value; aeDraft() }
   const t = e.target.dataset && e.target.dataset.tr; if (t && S.tr) { S.tr.v[t] = e.target.value; trUpdateScore() } });
 document.addEventListener('change', e => { const t = e.target.dataset && e.target.dataset.tr; if (t && S.tr) { S.tr.v[t] = e.target.value; trUpdateScore() }
@@ -948,6 +989,10 @@ document.addEventListener('click', async e => {
     const r = await api('inviter', Object.assign(auth(), { code: sessionCode(), pour: nm.trim() })); if (!r.ok) { toast(r.erreur || 'Impossible.'); return }
     S.inv = { code: r.code, pour: nm.trim() }; S.invJust = true; return loadF('') }
   if (a === 'f-inv-copy') { copy(invMsg(S.inv.pour, S.inv.code)); return }
+  if (a === 'pb-part') { S.pbPart = v; render(); window.scrollTo(0, 0); return }
+  if (a === 'pb-copy') { const el = document.getElementById('pb-' + b.dataset.i); if (el) copy(el.textContent); return }
+  if (a === 'pb-all') { const part = BANQUE.find(x => x.id === S.pbPart) || BANQUE[0]; copy(part.p.map((p, i) => '### ' + (i + 1) + '. ' + p.t + '\n\n' + pbFill(p.x)).join('\n\n')); return }
+  if (a === 'f-suppr') { if (!confirm('Supprimer définitivement le compte de ' + b.dataset.n + ' (@' + v + ') ?\nSon avancement et ses travaux déposés seront effacés. Ses auto-évaluations anonymes sont conservées.')) return; b.disabled = true; const r = await api('supprimerCompte', Object.assign(auth(), { code: sessionCode(), cible: v })); toast(r.ok ? 'Compte supprimé.' : (r.erreur || 'Impossible.')); return loadF('') }
   if (a === 'f-retirer') { if (!confirm('Retirer le rôle de formateur à ' + b.dataset.n + ' ?')) return; const r = await api('retirerFormateur', Object.assign(auth(), { code: sessionCode(), cible: v })); toast(r.ok ? 'Rôle retiré.' : (r.erreur || 'Impossible.')); return loadF('') }
   if (a === 'st-refresh') { S.st = null; render(); return loadStats() }
   if (a === 'st-ph') { S.stPh = v; return render() }
@@ -1058,8 +1103,8 @@ if (!navigator.onLine) $('#offline').hidden = false;
 // compte créé en mode démonstration (avant le branchement du serveur) : on repart proprement
 if (apiOn() && DB.profil && (!DB.jeton || DB.jeton === 'local')) { const th = DB.theme, ae = DB.ae; DB = { av: {}, liv: {}, vars: {}, queue: [], theme: th, ae }; save(); S.auth = 'signup'; S.migr = true }
 S.v = DB.profil ? 'home' : 'auth'; S.depth = 0;
-(() => { const q = new URLSearchParams(location.search); if (q.get('eval')) { S.v = 'autoeval'; S.p = q.get('eval') === 'sortie' ? 'sortie' : 'entree' } else if (q.has('tableau')) S.v = 'tableau';
-  if (!DB.profil && (S.v === 'autoeval' || S.v === 'tableau')) { S.after = { v: S.v, p: S.p }; S.v = 'auth'; S.p = null; S.auth = 'signup' }
+(() => { const q = new URLSearchParams(location.search); if (q.get('eval')) { S.v = 'autoeval'; S.p = q.get('eval') === 'sortie' ? 'sortie' : 'entree' } else if (q.has('tableau')) S.v = 'tableau'; else if (q.has('prompts')) S.v = 'prompts';
+  if (!DB.profil && (S.v === 'autoeval' || S.v === 'tableau' || S.v === 'prompts')) { S.after = { v: S.v, p: S.p }; S.v = 'auth'; S.p = null; S.auth = 'signup' }
   if (q.get('invite')) { S.invite = q.get('invite').toUpperCase(); if (DB.profil) S.v = 'compte'; else { S.v = 'auth'; S.auth = 'signup'; S.su = { formateur: true } } } })();
 try { history.replaceState({ v: S.v, p: S.p }, '') } catch (e) {}
 render(); setTimeout(flush, 1200);
